@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="uz-Cyrl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+
+<!-- PWA META -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Молия Ижара">
+<meta name="application-name" content="Молия Ижара">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" id="pwaManifest">
+<link rel="icon" id="pwaIcon" type="image/png">
+<link rel="apple-touch-icon" id="pwaAppleIcon">
+
+<title>Молия Ижара</title>
+<style>
+:root{--bg:#f1f5fb;--card:#fff;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--primary2:#1e40af;--border:#e2e8f0;--danger:#dc2626;--success:#16a34a;--warn:#f59e0b;--shadow:0 4px 16px rgba(15,23,42,.08);--safe-top:env(safe-area-inset-top,0);--safe-bot:env(safe-area-inset-bottom,0)}
+[data-theme="dark"]{--bg:#0b1220;--card:#151d2e;--text:#e6edf7;--muted:#8b9bb4;--primary:#3b82f6;--primary2:#2563eb;--border:#243044;--shadow:0 4px 16px rgba(0,0,0,.5)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);transition:background .2s,color .2s;font-size:15px;overscroll-behavior-y:contain;user-select:none}
+input,textarea{user-select:text}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;padding-top:calc(12px + var(--safe-top));background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.topbar h1{font-size:17px;font-weight:700;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+.topbar .spacer{width:40px}
+.icon-btn{background:transparent;border:none;font-size:20px;cursor:pointer;width:40px;height:40px;border-radius:10px;color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-btn:active{background:var(--border)}
+.content{padding:14px;padding-bottom:calc(14px + var(--safe-bot));flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.lock-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--primary),var(--primary2))}
+.lock-box{background:var(--card);border-radius:20px;padding:32px 22px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.lock-icon{font-size:48px;margin-bottom:12px}
+.lock-box h1{font-size:22px;margin-bottom:6px}
+.lock-box .muted{color:var(--muted);font-size:14px;margin-bottom:20px}
+.lock-box input{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;margin-bottom:12px;text-align:center;letter-spacing:2px}
+.lock-box input:focus{outline:none;border-color:var(--primary)}
+.err{color:var(--danger);font-size:13px;margin-top:10px;min-height:18px}
+.btn{border:none;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .1s,opacity .2s;background:var(--border);color:var(--text);font-family:inherit}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.success{background:var(--success);color:#fff}
+.btn.block{width:100%;padding:14px;margin-bottom:10px}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.stat .val{font-size:17px;font-weight:700;margin-top:4px;word-break:break-word}
+.search-bar{display:flex;gap:8px;margin-bottom:12px}
+.search-bar input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:14px;font-family:inherit}
+.search-bar input:focus{outline:none;border-color:var(--primary)}
+.search-bar select{padding:11px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit}
+.car-card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;border-left:4px solid var(--primary);transition:transform .1s;position:relative}
+.car-card:active{transform:scale(.99)}
+.car-card.overdue{border-left-color:var(--danger)}
+.car-card.done{border-left-color:var(--success);opacity:.7}
+.car-card h3{font-size:16px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.car-card h3 > span:first-child{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.car-card .row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:5px;gap:8px}
+.car-card .row b{color:var(--text);font-weight:600;text-align:right}
+.badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.badge.ok{background:rgba(22,163,74,.15);color:var(--success)}
+.badge.warn{background:rgba(245,158,11,.18);color:var(--warn)}
+.badge.bad{background:rgba(220,38,38,.15);color:var(--danger)}
+.progress{height:7px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:10px}
+.progress > div{height:100%;background:var(--primary);transition:width .3s}
+.car-card.overdue .progress > div{background:var(--danger)}
+.car-card.done .progress > div{background:var(--success)}
+.section{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.section h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;font-weight:700}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px;gap:10px}
+.kv:last-child{border-bottom:none}
+.kv span:first-child{color:var(--muted);flex-shrink:0}
+.kv span:last-child{font-weight:600;text-align:right;word-break:break-word}
+.pay-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;gap:8px}
+.pay-item:last-child{border-bottom:none}
+.pay-item .date{color:var(--muted);font-size:12px}
+.pay-item .amt{font-weight:700;color:var(--success)}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.doc-item{background:var(--bg);border-radius:10px;padding:10px;text-align:center;cursor:pointer;border:1px solid var(--border)}
+.doc-item .ic{font-size:26px}
+.doc-item .nm{font-size:11px;color:var(--muted);margin-top:4px;word-break:break-word;line-height:1.2}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:flex-end;justify-content:center}
+.modal.active{display:flex}
+.modal-box{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:20px 18px 30px;padding-bottom:calc(30px + var(--safe-bot));max-height:92vh;overflow-y:auto;animation:slideUp .22s ease;overscroll-behavior:contain}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-box h2{font-size:18px;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary)}
+.field .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-actions .btn{flex:1}
+#banner{position:fixed;top:calc(12px + var(--safe-top));left:12px;right:12px;z-index:200;background:var(--danger);color:#fff;padding:14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;font-size:14px;font-weight:600}
+#banner.active{display:block;animation:slideDown .3s}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.file-preview{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.file-chip{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;display:flex;align-items:center;gap:6px}
+.file-chip button{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 2px}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px}
+.toggle-row:last-child{border-bottom:none}
+.switch{position:relative;width:48px;height:28px;flex-shrink:0}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:var(--border);border-radius:30px;transition:.2s;cursor:pointer}
+.slider::before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:var(--primary)}
+.switch input:checked + .slider::before{transform:translateX(20px)}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .ic{font-size:54px;margin-bottom:12px;opacity:.5}
+.schedule-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;margin-bottom:4px;font-size:13px;background:var(--bg);gap:8px}
+.schedule-item.paid{background:rgba(22,163,74,.1);color:var(--success)}
+.schedule-item.due{background:rgba(245,158,11,.15);color:var(--warn);font-weight:600}
+.schedule-item.over{background:rgba(220,38,38,.12);color:var(--danger);font-weight:600}
+.install-box{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;display:none}
+.install-box.show{display:block}
+.install-box h3{color:#fff;font-size:14px;margin-bottom:6px;text-transform:none;letter-spacing:0}
+.install-box p{font-size:12px;opacity:.9;margin-bottom:12px;line-height:1.5}
+.install-box .btn{background:#fff;color:var(--primary);font-weight:700;width:100%;padding:12px}
+</style>
+</head>
+<body>
+
+<div id="banner"></div>
+
+<!-- LOCK -->
+<div id="lockScreen" class="screen active">
+  <div class="lock-wrap"><div class="lock-box">
+    <div class="lock-icon">🔒</div><h1>Молия Ижара</h1>
+    <p class="muted" id="lockSub">Парол ўрнатинг</p>
+    <input type="password" id="p1" placeholder="Парол" inputmode="numeric" autocomplete="off">
+    <input type="password" id="p2" placeholder="Паролни такрорланг" inputmode="numeric" style="display:none" autocomplete="off">
+    <button class="btn primary block" id="lockBtn">Кириш</button>
+    <p class="err" id="lockErr"></p>
+  </div></div>
+</div>
+
+<!-- MAIN -->
+<div id="mainScreen" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" id="themeBtn">🌙</button>
+    <h1>Молия Ижара</h1>
+    <button class="icon-btn" id="settingsBtn">⚙️</button>
+  </header>
+  <div class="content">
+    <div class="install-box" id="installBox">
+      <h3>📲 Иловани ўрнатинг</h3>
+      <p>Телефон менюсида иконка пайдо бўлади ва адрес панели йўқолади</p>
+      <button class="btn" id="installBtn">Иловани ўрнатиш</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <button class="btn primary block" id="addCarBtn">➕ Янги папка (Машина)</button>
+    <div class="search-bar" id="searchBar" style="display:none">
+      <input type="text" id="searchInput" placeholder="🔍 Қидириш...">
+      <select id="sortSelect">
+        <option value="recent">Янги</option>
+        <option value="due">Муддат</option>
+        <option value="name">Ном</option>
+      </select>
+    </div>
+    <div id="carList"></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="detailScreen" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" id="backBtn">←</button>
+    <h1 id="detailTitle">Машина</h1>
+    <button class="icon-btn" id="delCarBtn">🗑️</button>
+  </header>
+  <div class="content" id="detailContent"></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsScreen" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" id="backBtn2">←</button>
+    <h1>Созлашлар</h1><span class="spacer"></span>
+  </header>
+  <div class="content">
+    <div class="section"><h3>Кўриниш</h3>
+      <div class="toggle-row"><span>Тунги режим</span>
+        <label class="switch"><input type="checkbox" id="themeToggle"><span class="slider"></span></label></div>
+    </div>
+    <div class="section"><h3>Билдиришнома</h3>
+      <div class="toggle-row"><span>Ёқиш</span>
+        <label class="switch"><input type="checkbox" id="notifToggle"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Вибрация</span>
+        <label class="switch"><input type="checkbox" id="vibToggle"><span class="slider"></span></label></div>
+      <div class="field" style="margin-top:12px">
+        <label>Қайта эслатиш (дақиқа)</label>
+        <input type="number" id="renotifyInput" min="5" value="60">
+      </div>
+      <button class="btn primary sm" id="testNotifBtn" style="width:100%;margin-top:6px">🔔 Синаш</button>
+    </div>
+    <div class="section"><h3>Хавфсизлик</h3>
+      <button class="btn block" id="changePassBtn">🔑 Паролни ўзгартириш</button>
+    </div>
+    <div class="section"><h3>Маълумот</h3>
+      <button class="btn block" id="exportBtn">💾 Захира (Экспорт)</button>
+      <button class="btn block" id="importBtn">📥 Тиклаш (Импорт)</button>
+      <button class="btn danger block" id="resetBtn">⚠️ Ҳаммасини ўчириш</button>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0">Молия Ижара v3.0 — PWA<br>Redmi Note 13 учун мослашган</p>
+  </div>
+</div>
+
+<div id="modal" class="modal"><div class="modal-box" id="modalBox"></div></div>
+
+<script>
+'use strict';
+
+/* ================= PWA: ICON + MANIFEST ================= */
+(function setupPWA(){
+  function makeIcon(size, maskable){
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = size;
+    const ctx = cv.getContext('2d');
+    // Background
+    const grad = ctx.createLinearGradient(0,0,size,size);
+    grad.addColorStop(0,'#2563eb');
+    grad.addColorStop(1,'#1e40af');
+    ctx.fillStyle = grad;
+    if(maskable){
+      ctx.fillRect(0,0,size,size);
+    }else{
+      const r = size*0.22;
+      ctx.beginPath();
+      ctx.moveTo(r,0);ctx.lineTo(size-r,0);ctx.quadraticCurveTo(size,0,size,r);
+      ctx.lineTo(size,size-r);ctx.quadraticCurveTo(size,size,size-r,size);
+      ctx.lineTo(r,size);ctx.quadraticCurveTo(0,size,0,size-r);
+      ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);
+      ctx.closePath();ctx.fill();
+    }
+    // Emoji
+    ctx.font = Math.round(size*0.58)+'px "Segoe UI Emoji","Apple Color Emoji",serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💰', size/2, size*0.54);
+    return cv.toDataURL('image/png');
+  }
+  let i192='', i512='', iMask='';
+  try{
+    i192 = makeIcon(192, false);
+    i512 = makeIcon(512, false);
+    iMask = makeIcon(512, true);
+  }catch(e){ console.warn('icon gen', e) }
+
+  // Set link icons
+  const ico = document.getElementById('pwaIcon');
+  if(ico && i192) ico.href = i192;
+  const aico = document.getElementById('pwaAppleIcon');
+  if(aico && i192) aico.href = i192;
+
+  // Build manifest
+  const startUrl = location.href.split('#')[0].split('?')[0];
+  const manifest = {
+    name: 'Молия Ижара',
+    short_name: 'Молия',
+    description: 'Машина ижараси ва молия ҳисоби — битта фойдаланувчи учун',
+    start_url: startUrl,
+    scope: './',
+    display: 'standalone',
+    display_override: ['standalone','minimal-ui'],
+    orientation: 'portrait',
+    background_color: '#2563eb',
+    theme_color: '#2563eb',
+    lang: 'uz-Cyrl',
+    dir: 'ltr',
+    categories: ['finance','business','productivity'],
+    prefer_related_applications: false,
+    icons: [
+      { src: i192, sizes:'192x192', type:'image/png', purpose:'any' },
+      { src: i512, sizes:'512x512', type:'image/png', purpose:'any' },
+      { src: iMask, sizes:'512x512', type:'image/png', purpose:'maskable' }
+    ]
+  };
+
+  try{
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.getElementById('pwaManifest');
+    if(link) link.href = url;
+  }catch(e){ console.warn('manifest', e) }
+})();
+
+/* ================= STATE ================= */
+const KEY='moliyAIjara_v2';
+let state={version:3,passwordHash:null,theme:'light',cars:[],notifSettings:{enabled:true,vibrate:true,reNotifyMin:60}};
+let lastNotify={},currentCarId=null,pendingDocs=[],pendingIshonch=null,isSaving=false,notifTimer=null;
+let modalResolve=null;
+let deferredInstall=null;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+function fmtMoney(n){n=Number(n)||0;return n.toLocaleString('ru-RU')+" сўм"}
+function fmtDate(d){if(!d)return'—';const dt=(d instanceof Date)?d:new Date(d);if(isNaN(dt.getTime()))return'—';return String(dt.getDate()).padStart(2,'0')+'.'+String(dt.getMonth()+1).padStart(2,'0')+'.'+dt.getFullYear()}
+function fmtDateTime(d){if(!d)return'—';const dt=(d instanceof Date)?d:new Date(d);if(isNaN(dt.getTime()))return'—';return fmtDate(dt)+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0')}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function nowTimeStr(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw)Object.assign(state,JSON.parse(raw));
+    if(!state.cars&&localStorage.getItem('moliyAIjara_v1')){const old=JSON.parse(localStorage.getItem('moliyAIjara_v1'));state=Object.assign(state,old);state.version=3}
+  }catch(e){console.warn(e)}
+  if(!Array.isArray(state.cars))state.cars=[];
+  if(!state.notifSettings)state.notifSettings={enabled:true,vibrate:true,reNotifyMin:60};
+  state.cars.forEach(c=>{if(!c.startTime)c.startTime='09:00'});
+  document.documentElement.setAttribute('data-theme',state.theme);
+  updateThemeColor();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){console.error(e);if(e.name==='QuotaExceededError')alert('Хотира тўлди!')}}
+function updateThemeColor(){
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.content = state.theme==='dark' ? '#0b1220' : '#2563eb';
+}
+
+async function hashPass(s){
+  if(window.crypto&&crypto.subtle){try{const buf=new TextEncoder().encode(s);const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}catch(e){}}
+  let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0}return 'fb_'+Math.abs(h).toString(16)
+}
+
+function calc(c){
+  const totalMonths=Math.max(1,parseInt(c.months)||1);
+  const payments=c.payments||[];
+  const paidCount=Math.min(payments.length,totalMonths);
+  const paidSum=payments.reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const monthly=Number(c.monthlyPayment)||0;
+  const remainSum=Math.max(0,(totalMonths-paidCount)*monthly);
+  const pct=Math.round(paidCount/totalMonths*100);
+  const sched=buildSchedule(c);
+  const nextDue=paidCount<totalMonths?sched[paidCount]:null;
+  let overdue=false;
+  if(nextDue&&Date.now()>=nextDue.getTime())overdue=true;
+  return{totalMonths,paidCount,paidSum,remainSum,monthly,pct,sched,nextDue,overdue,done:paidCount>=totalMonths}
+}
+function buildSchedule(c){
+  const dateStr=c.startDate||todayStr(),timeStr=c.startTime||'09:00';
+  const start=new Date(dateStr+'T'+timeStr+':00');
+  if(isNaN(start.getTime()))return[];
+  const total=Math.max(1,parseInt(c.months)||1),arr=[],baseDay=start.getDate();
+  for(let i=0;i<total;i++){
+    const d=new Date(start.getFullYear(),start.getMonth()+i,1,start.getHours(),start.getMinutes(),0);
+    const lastDay=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+    d.setDate(Math.min(baseDay,lastDay));
+    arr.push(d);
+  }
+  return arr;
+}
+
+/* ============ MODAL ============ */
+function openModal(content,onOutside){
+  modalResolve=onOutside||null;
+  $('modalBox').innerHTML=content;
+  $('modal').classList.add('active');
+}
+function closeModal(result){
+  if(modalResolve){const r=modalResolve;modalResolve=null;try{r(result)}catch(e){}}
+  $('modal').classList.remove('active');
+  setTimeout(()=>{ if(!$('modal').classList.contains('active')) $('modalBox').innerHTML='' },300);
+}
+$('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(false) });
+
+function askConfirm(title,msg,okText,okClass){
+  return new Promise(resolve=>{
+    openModal(`
+      <h2>${esc(title)}</h2>
+      <p style="color:var(--muted);margin-bottom:16px;line-height:1.5">${esc(msg)}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="cfmNo">Бекор қилиш</button>
+        <button type="button" class="btn ${okClass||'danger'}" id="cfmYes">${esc(okText||'Тасдиқлаш')}</button>
+      </div>`);
+    $('cfmNo').onclick=()=>{modalResolve=null;$('modal').classList.remove('active');setTimeout(()=>$('modalBox').innerHTML='',300);resolve(false)};
+    $('cfmYes').onclick=()=>{modalResolve=null;$('modal').classList.remove('active');setTimeout(()=>$('modalBox').innerHTML='',300);resolve(true)};
+  });
+}
+
+/* ============ SCREENS ============ */
+function showScreen(id){
+  if($('modal').classList.contains('active')){
+    modalResolve=null;
+    $('modal').classList.remove('active');
+    $('modalBox').innerHTML='';
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=$(id);if(el)el.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ============ LOCK ============ */
+function initLock(){
+  if(!state.passwordHash){
+    $('lockSub').textContent='Янги парол ўрнатинг (камида 4 белги)';
+    $('p2').style.display='block';$('lockBtn').textContent='Паролни ўрнатиш';
+  }else{
+    $('lockSub').textContent='Паролни киритинг';
+    $('p2').style.display='none';$('lockBtn').textContent='Кириш';
+  }
+}
+$('lockBtn').addEventListener('click',async()=>{
+  const p1=$('p1').value.trim();$('lockErr').textContent='';
+  if(p1.length<4){$('lockErr').textContent='Парол камида 4 белги';return}
+  if(!state.passwordHash){
+    const p2=$('p2').value.trim();
+    if(p1!==p2){$('lockErr').textContent='Пароллар мос эмас';return}
+    state.passwordHash=await hashPass(p1);save();enterApp();
+  }else{
+    const h=await hashPass(p1);
+    if(h!==state.passwordHash){$('lockErr').textContent='Нотўғри парол';vib(150);return}
+    enterApp();
+  }
+});
+$('p1').addEventListener('keydown',e=>{if(e.key==='Enter')$('lockBtn').click()});
+$('p2').addEventListener('keydown',e=>{if(e.key==='Enter')$('lockBtn').click()});
+
+function enterApp(){
+  $('p1').value='';$('p2').value='';
+  showScreen('mainScreen');renderMain();askNotifPermission();checkNotifications();startNotifTimer();
+}
+
+/* ============ MAIN ============ */
+function renderMain(){
+  const cars=state.cars;
+  let totalMonthly=0,totalPaid=0,totalRemain=0;
+  cars.forEach(c=>{const s=calc(c);totalMonthly+=Number(c.monthlyPayment)||0;totalPaid+=s.paidSum;totalRemain+=s.remainSum});
+  $('stats').innerHTML=`
+    <div class="stat"><div class="lbl">Машиналар</div><div class="val">${cars.length}</div></div>
+    <div class="stat"><div class="lbl">Ойлик тушум</div><div class="val">${fmtMoney(totalMonthly)}</div></div>
+    <div class="stat"><div class="lbl">Тўланган</div><div class="val" style="color:var(--success)">${fmtMoney(totalPaid)}</div></div>
+    <div class="stat"><div class="lbl">Қолдиқ</div><div class="val" style="color:${totalRemain>0?'var(--danger)':'var(--success)'}">${fmtMoney(totalRemain)}</div></div>`;
+  $('searchBar').style.display=cars.length>2?'flex':'none';
+  const q=($('searchInput').value||'').toLowerCase().trim();
+  const sort=$('sortSelect').value;
+  let list=cars.slice();
+  if(q){list=list.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.renter||'').toLowerCase().includes(q)||(c.address||'').toLowerCase().includes(q))}
+  if(sort==='name')list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  else if(sort==='due')list.sort((a,b)=>{const sa=calc(a),sb=calc(b);if(!sa.nextDue)return 1;if(!sb.nextDue)return-1;return sa.nextDue-sb.nextDue});
+  const container=$('carList');
+  if(!list.length){
+    container.innerHTML=cars.length?`<div class="empty"><div class="ic">🔍</div><div>Ҳеч нарса топилмади</div></div>`
+      :`<div class="empty"><div class="ic">📁</div><div>Ҳозирча папка йўқ</div><div style="font-size:13px;margin-top:6px">«Янги папка» тугмасини босинг</div></div>`;
+    return;
+  }
+  container.innerHTML=list.map(c=>{
+    const s=calc(c);
+    const cls=s.done?'done':(s.overdue?'overdue':'');
+    const badge=s.done?'<span class="badge ok">Тугаган</span>':(s.overdue?'<span class="badge bad">Муддат ўтди</span>':(s.paidCount>0?'<span class="badge warn">Жараёнда</span>':'<span class="badge ok">Янги</span>'));
+    const nextHtml=s.done?'—':fmtDateTime(s.nextDue);
+    return`<div class="car-card ${cls}" data-id="${c.id}">
+      <h3><span>🚗 ${esc(c.name)}</span>${badge}</h3>
+      <div class="row"><span>Ижарачи</span><b>${esc(c.renter||'—')}</b></div>
+      <div class="row"><span>Ойлик</span><b>${fmtMoney(c.monthlyPayment)}</b></div>
+      <div class="row"><span>Тўланган</span><b>${s.paidCount} / ${s.totalMonths} ой</b></div>
+      <div class="progress"><div style="width:${s.pct}%"></div></div>
+      <div class="row" style="margin-top:8px"><span>Кейинги</span><b>${nextHtml}</b></div>
+    </div>`;
+  }).join('');
+}
+
+$('carList').addEventListener('click',e=>{
+  const card=e.target.closest('.car-card');
+  if(!card)return;
+  const id=card.dataset.id;
+  if(id)openCar(id);
+});
+
+/* ============ CAR FORM ============ */
+$('addCarBtn').addEventListener('click',()=>openCarForm(null));
+
+function openCarForm(id){
+  const edit=id?state.cars.find(c=>c.id===id):null;
+  const c=edit||{name:'',renter:'',address:'',initial:'',monthlyPayment:'',months:'',startDate:todayStr(),startTime:nowTimeStr(),docs:[],payments:[]};
+  pendingDocs=edit?JSON.parse(JSON.stringify(c.docs||[])):[];
+  pendingIshonch=edit&&c.ishonch?JSON.parse(JSON.stringify(c.ishonch)):null;
+
+  openModal(`
+    <h2>${edit?'✏️ Таҳрирлаш':'➕ Янги машина'}</h2>
+    <div class="field"><label>Машина номи *</label>
+      <input id="f_name" placeholder="Мисол: Gentra, Malibu" value="${esc(c.name)}"></div>
+    <div class="field"><label>Ижарачи исми</label>
+      <input id="f_renter" placeholder="Тўлиқ исм" value="${esc(c.renter)}"></div>
+    <div class="field"><label>Ижарачи манзили</label>
+      <input id="f_addr" placeholder="Шаҳар, туман, кўча" value="${esc(c.address)}"></div>
+    <div class="row2">
+      <div class="field"><label>Бошланғич сумма</label>
+        <input id="f_init" type="number" inputmode="numeric" placeholder="0" value="${c.initial||''}"></div>
+      <div class="field"><label>Ойлик тўлов *</label>
+        <input id="f_monthly" type="number" inputmode="numeric" placeholder="0" value="${c.monthlyPayment||''}"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Неча ойга *</label>
+        <input id="f_months" type="number" inputmode="numeric" placeholder="12" value="${c.months||''}"></div>
+      <div class="field"><label>Бошланиш санаси *</label>
+        <input id="f_start" type="date" value="${c.startDate||todayStr()}"></div>
+    </div>
+    <div class="field"><label>🔔 Ойлик тўлов вақти (соат:дақиқа)</label>
+      <input id="f_time" type="time" value="${c.startTime||'09:00'}">
+      <div class="hint">Ҳар ой шу сана ва шу вақтда эслатилади</div></div>
+    <div class="section"><h3>📎 Ҳужжатлар (расм / PDF)</h3>
+      <input type="file" id="f_docs" accept="image/*,application/pdf" multiple>
+      <div class="file-preview" id="docsPreview"></div></div>
+    <div class="section"><h3>📜 Ишончнома</h3>
+      <input type="file" id="f_ishonch" accept="image/*,application/pdf">
+      <div class="row2" style="margin-top:10px">
+        <div class="field"><label>Санаси</label>
+          <input id="f_ish_date" type="date" value="${c.ishonch?.date||''}"></div>
+        <div class="field"><label>Муддати</label>
+          <input id="f_ish_exp" type="date" value="${c.ishonch?.expiry||''}"></div>
+      </div>
+      <div class="field"><label>Берилган жой</label>
+        <input id="f_ish_place" placeholder="Мисол: Тошкент ш." value="${esc(c.ishonch?.place||'')}"></div>
+      <div class="file-preview" id="ishPreview"></div></div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="cancelCarBtn">Бекор қилиш</button>
+      <button type="button" class="btn primary" id="saveCarBtn">Сақлаш</button>
+    </div>`);
+  renderDocsPreview();renderIshPreview();
+
+  $('f_docs').addEventListener('change',async e=>{
+    const files=Array.from(e.target.files||[]);
+    for(const f of files){
+      const data=await readFile(f);
+      if(data)pendingDocs.push({id:uid(),name:f.name,type:f.type,data});
+    }
+    e.target.value='';renderDocsPreview();
+  });
+  $('f_ishonch').addEventListener('change',async e=>{
+    const f=e.target.files[0];if(!f)return;
+    const data=await readFile(f);
+    if(data)pendingIshonch=Object.assign(pendingIshonch||{},{name:f.name,type:f.type,data});
+    e.target.value='';renderIshPreview();
+  });
+  $('cancelCarBtn').addEventListener('click',()=>closeModal(false));
+  $('saveCarBtn').addEventListener('click',()=>saveCarForm(edit));
+}
+
+function saveCarForm(edit){
+  if(isSaving)return;
+  const name=($('f_name').value||'').trim();
+  if(!name){alert('Машина номини киритинг');$('f_name').focus();return}
+  const monthly=Number($('f_monthly').value)||0;
+  const months=Number($('f_months').value)||0;
+  if(monthly<=0){alert('Ойлик тўловни киритинг');$('f_monthly').focus();return}
+  if(months<=0){alert('Неча ойга берилганини киритинг');$('f_months').focus();return}
+
+  isSaving=true;
+  const btn=$('saveCarBtn');if(btn){btn.disabled=true;btn.textContent='Сақланаяпти...'}
+
+  try{
+    const obj={
+      id:edit?edit.id:uid(),name,
+      renter:($('f_renter').value||'').trim(),
+      address:($('f_addr').value||'').trim(),
+      initial:Number($('f_init').value)||0,
+      monthlyPayment:monthly,months:months,
+      startDate:$('f_start').value||todayStr(),
+      startTime:$('f_time').value||'09:00',
+      docs:pendingDocs.slice(),
+      payments:edit?(edit.payments||[]).slice():[],
+      ishonch:pendingIshonch?Object.assign({},pendingIshonch,{
+        date:$('f_ish_date').value,expiry:$('f_ish_exp').value,place:($('f_ish_place').value||'').trim()
+      }):null,
+      createdAt:edit?edit.createdAt:new Date().toISOString()
+    };
+    if(edit){
+      const i=state.cars.findIndex(x=>x.id===edit.id);
+      if(i>=0)state.cars[i]=obj;
+    }else{
+      state.cars.unshift(obj);
+    }
+    save();
+    modalResolve=null;
+    $('modal').classList.remove('active');
+    setTimeout(()=>$('modalBox').innerHTML='',300);
+    renderMain();
+    if(currentCarId===obj.id)setTimeout(()=>openCar(obj.id),50);
+  }catch(err){
+    console.error(err);alert('Сақлашда хато: '+err.message);
+  }finally{
+    isSaving=false;
+  }
+}
+
+function renderDocsPreview(){
+  const el=$('docsPreview');if(!el)return;
+  el.innerHTML=pendingDocs.map((d,i)=>`<div class="file-chip">${d.type?.startsWith('image')?'🖼️':'📄'} ${esc((d.name||'').slice(0,18))}<button type="button" data-rmdoc="${i}">✕</button></div>`).join('');
+  el.querySelectorAll('[data-rmdoc]').forEach(b=>{b.addEventListener('click',()=>{pendingDocs.splice(Number(b.dataset.rmdoc),1);renderDocsPreview()})});
+}
+function renderIshPreview(){
+  const el=$('ishPreview');if(!el)return;
+  if(!pendingIshonch){el.innerHTML='';return}
+  el.innerHTML=`<div class="file-chip">${pendingIshonch.type?.startsWith('image')?'🖼️':'📄'} ${esc((pendingIshonch.name||'').slice(0,22))}<button type="button" id="rmIsh">✕</button></div>`;
+  const rm=$('rmIsh');if(rm)rm.addEventListener('click',()=>{pendingIshonch=null;renderIshPreview()});
+}
+
+function readFile(file){
+  return new Promise(res=>{
+    if(file.type&&file.type.startsWith('image/')){
+      const r=new FileReader();
+      r.onload=e=>{const img=new Image();img.onload=()=>{const maxW=900;const scale=Math.min(1,maxW/img.width);const cv=document.createElement('canvas');cv.width=Math.round(img.width*scale);cv.height=Math.round(img.height*scale);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',0.65))};img.onerror=()=>res(e.target.result);img.src=e.target.result};
+      r.onerror=()=>res('');r.readAsDataURL(file);
+    }else{
+      if(file.size>2*1024*1024){alert('Файл жуда катта (макс 2 МБ): '+file.name);res('');return}
+      const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=()=>res('');r.readAsDataURL(file);
+    }
+  });
+}
+
+/* ============ DETAIL ============ */
+function openCar(id){
+  if($('modal').classList.contains('active')){
+    modalResolve=null;
+    $('modal').classList.remove('active');
+    $('modalBox').innerHTML='';
+  }
+  const c=state.cars.find(x=>x.id===id);
+  if(!c){showScreen('mainScreen');return}
+  currentCarId=id;
+  const s=calc(c);
+  $('detailTitle').textContent=c.name||'Машина';
+
+  const schedHtml=s.sched.map((d,i)=>{
+    const isPaid=i<s.paidCount;
+    const isDue=i===s.paidCount&&!s.done;
+    const isOver=isDue&&s.overdue;
+    const cls=isPaid?'paid':(isOver?'over':(isDue?'due':''));
+    const mark=isPaid?'✅':(isOver?'⚠️':(isDue?'🔔':'⏳'));
+    return`<div class="schedule-item ${cls}"><span>${mark} ${i+1}-тўлов</span><span>${fmtDateTime(d)}</span></div>`;
+  }).join('');
+
+  const nextDueHtml=s.done?'<span style="color:var(--success)">Тугаган ✓</span>'
+    :`<span style="color:${s.overdue?'var(--danger)':'var(--warn)'}">${fmtDateTime(s.nextDue)}</span>`;
+
+  const docsHtml=(c.docs||[]).length
+    ?`<div class="doc-grid">${c.docs.map((d,i)=>`<div class="doc-item" data-viewdoc="${i}"><div class="ic">${d.type?.startsWith('image')?'🖼️':'📄'}</div><div class="nm">${esc((d.name||'Ҳужжат').slice(0,16))}</div></div>`).join('')}</div>`
+    :`<p style="color:var(--muted);font-size:13px">Ҳужжат йўқ</p>`;
+
+  const ishHtml=c.ishonch?`
+    <div class="kv"><span>Ҳолат</span><span>Мавжуд</span></div>
+    <div class="kv"><span>Санаси</span><span>${fmtDate(c.ishonch.date)}</span></div>
+    <div class="kv"><span>Муддати</span><span>${fmtDate(c.ishonch.expiry)}</span></div>
+    <div class="kv"><span>Жойи</span><span>${esc(c.ishonch.place||'—')}</span></div>
+    <button type="button" class="btn primary sm" style="width:100%;margin-top:10px" id="viewIshBtn">👁️ Кўриш</button>
+  `:`<p style="color:var(--muted);font-size:13px">Ишончнома киритилмаган</p>`;
+
+  const payments=(c.payments||[]).slice().reverse();
+  const payHtml=payments.length
+    ?payments.map((p,i)=>{const realIdx=(c.payments.length-1-i);return`<div class="pay-item"><div><div class="amt">+ ${fmtMoney(p.amount)}</div><div class="date">${fmtDate(p.date)}</div></div><button type="button" class="btn sm danger" data-rmpay="${realIdx}">✕</button></div>`}).join('')
+    :`<p style="color:var(--muted);font-size:13px">Тўлов қайд этилмаган</p>`;
+
+  $('detailContent').innerHTML=`
+    <div class="section"><h3>Ҳолат</h3>
+      <div class="progress" style="height:10px"><div style="width:${s.pct}%"></div></div>
+      <div class="kv"><span>Тўланган</span><span>${s.paidCount} / ${s.totalMonths} ой (${s.pct}%)</span></div>
+      <div class="kv"><span>Кейинги тўлов</span><span>${nextDueHtml}</span></div>
+      <div class="kv"><span>Қолдиқ сумма</span><span style="color:${s.remainSum>0?'var(--danger)':'var(--success)'}">${fmtMoney(s.remainSum)}</span></div>
+    </div>
+    <div class="section"><h3>Машина маълумоти</h3>
+      <div class="kv"><span>Машина</span><span>${esc(c.name)}</span></div>
+      <div class="kv"><span>Ижарачи</span><span>${esc(c.renter||'—')}</span></div>
+      <div class="kv"><span>Манзил</span><span>${esc(c.address||'—')}</span></div>
+      <div class="kv"><span>Бошланғич сумма</span><span>${fmtMoney(c.initial)}</span></div>
+      <div class="kv"><span>Ойлик тўлов</span><span>${fmtMoney(c.monthlyPayment)}</span></div>
+      <div class="kv"><span>Муддат</span><span>${c.months||0} ой</span></div>
+      <div class="kv"><span>Бошланиш</span><span>${fmtDateTime(new Date((c.startDate||todayStr())+'T'+(c.startTime||'09:00')+':00'))}</span></div>
+      <div class="kv"><span>Тўланган жами</span><span style="color:var(--success)">${fmtMoney(s.paidSum)}</span></div>
+    </div>
+    <button type="button" class="btn success block" id="payNowBtn">💰 Тўлов қабул қилиш</button>
+    <button type="button" class="btn block" id="editCarBtn">✏️ Таҳрирлаш</button>
+    <div class="section"><h3>📅 Тўлов жадвали</h3>${schedHtml}</div>
+    <div class="section"><h3>📎 Ҳужжатлар</h3>${docsHtml}</div>
+    <div class="section"><h3>📜 Ишончнома</h3>${ishHtml}</div>
+    <div class="section"><h3>💵 Тўловлар тарихи</h3>${payHtml}</div>`;
+
+  $('payNowBtn').addEventListener('click',()=>payNow(c.id));
+  $('editCarBtn').addEventListener('click',()=>openCarForm(c.id));
+  const viewIsh=$('viewIshBtn');if(viewIsh)viewIsh.addEventListener('click',()=>viewDoc(c.id,'ishonch',0));
+  $('detailContent').querySelectorAll('[data-viewdoc]').forEach(el=>{el.addEventListener('click',()=>viewDoc(c.id,'doc',Number(el.dataset.viewdoc)))});
+  $('detailContent').querySelectorAll('[data-rmpay]').forEach(el=>{el.addEventListener('click',()=>removePayment(c.id,Number(el.dataset.rmpay)))});
+
+  showScreen('detailScreen');
+}
+
+function payNow(id){
+  const c=state.cars.find(x=>x.id===id);if(!c)return;
+  const s=calc(c);
+  if(s.done){alert('Барча тўловлар тугаган');return}
+  const defAmount=c.monthlyPayment||0;
+  openModal(`
+    <h2>💰 Тўлов қабул қилиш</h2>
+    <div class="kv"><span>Машина</span><span>${esc(c.name)}</span></div>
+    <div class="kv"><span>Ижарачи</span><span>${esc(c.renter||'—')}</span></div>
+    <div class="kv"><span>Кейинги тўлов</span><span>${fmtDateTime(s.nextDue)}</span></div>
+    <div class="field" style="margin-top:12px"><label>Тўлов суммаси</label>
+      <input id="p_amount" type="number" inputmode="numeric" value="${defAmount}"></div>
+    <div class="field"><label>Сана</label>
+      <input id="p_date" type="date" value="${todayStr()}"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="cancelPayBtn">Бекор қилиш</button>
+      <button type="button" class="btn success" id="confirmPay">Тасдиқлаш</button>
+    </div>`);
+  $('cancelPayBtn').addEventListener('click',()=>closeModal(false));
+  $('confirmPay').addEventListener('click',()=>{
+    const amt=Number($('p_amount').value)||0;
+    const dt=$('p_date').value||todayStr();
+    if(amt<=0){alert('Сумма киритинг');return}
+    c.payments=c.payments||[];
+    c.payments.push({amount:amt,date:dt,at:new Date().toISOString()});
+    save();
+    Object.keys(lastNotify).forEach(k=>{if(k.startsWith(id+'_'))delete lastNotify[k]});
+    closeModal(true);
+    setTimeout(()=>{openCar(id);renderMain()},50);
+  });
+}
+
+async function removePayment(carId,idx){
+  const c=state.cars.find(x=>x.id===carId);if(!c)return;
+  const p=c.payments[idx];
+  const ok=await askConfirm('Тўловни ўчириш',''+fmtMoney(p.amount)+' ('+fmtDate(p.date)+') — ўчирилсинми?','Ўчириш');
+  if(!ok)return;
+  c.payments.splice(idx,1);save();
+  setTimeout(()=>{openCar(carId);renderMain()},50);
+}
+
+function viewDoc(carId,kind,idx){
+  const c=state.cars.find(x=>x.id===carId);if(!c)return;
+  let data,name,type;
+  if(kind==='doc'){const d=c.docs[idx];if(!d)return;data=d.data;name=d.name;type=d.type}
+  else{if(!c.ishonch)return;data=c.ishonch.data;name=c.ishonch.name;type=c.ishonch.type}
+  if(type&&type.startsWith('image')){
+    openModal(`<h2>${esc(name||'Ҳужжат')}</h2>
+      <img src="${data}" style="width:100%;border-radius:12px">
+      <div class="modal-actions"><button type="button" class="btn primary" id="closeDocBtn">Ёпиш</button></div>`);
+  }else{
+    openModal(`<h2>${esc(name||'Ҳужжат')}</h2>
+      <p style="color:var(--muted);margin-bottom:12px">PDF файлни очиш учун босинг</p>
+      <a href="${data}" download="${esc(name||'doc.pdf')}" class="btn primary block" style="text-align:center;text-decoration:none;display:block">📄 Юклаб олиш / Очиш</a>
+      <div class="modal-actions"><button type="button" class="btn" id="closeDocBtn">Ёпиш</button></div>`);
+  }
+  const cb=$('closeDocBtn');if(cb)cb.addEventListener('click',()=>closeModal(false));
+}
+
+$('backBtn').addEventListener('click',()=>{currentCarId=null;showScreen('mainScreen');renderMain()});
+
+$('delCarBtn').addEventListener('click',async()=>{
+  if(!currentCarId){alert('Машина танланмаган');return}
+  const c=state.cars.find(x=>x.id===currentCarId);
+  if(!c)return;
+  const ok=await askConfirm(
+    'Папкани ўчириш',
+    '«'+c.name+'» папкасини ва барча маълумотларини ўчиришни тасдиқлайсизми? Бу амал қайтарилмайди!',
+    'Ҳа, ўчириш'
+  );
+  if(!ok)return;
+  const idToDel=currentCarId;
+  state.cars=state.cars.filter(x=>x.id!==idToDel);
+  Object.keys(lastNotify).forEach(k=>{if(k.startsWith(idToDel+'_'))delete lastNotify[k]});
+  save();
+  currentCarId=null;
+  showScreen('mainScreen');
+  renderMain();
+});
+
+/* ============ SETTINGS ============ */
+$('settingsBtn').addEventListener('click',()=>{
+  $('themeToggle').checked=state.theme==='dark';
+  $('notifToggle').checked=state.notifSettings.enabled;
+  $('vibToggle').checked=state.notifSettings.vibrate;
+  $('renotifyInput').value=state.notifSettings.reNotifyMin;
+  showScreen('settingsScreen');
+});
+$('backBtn2').addEventListener('click',()=>{showScreen('mainScreen');renderMain()});
+$('themeToggle').addEventListener('change',e=>{state.theme=e.target.checked?'dark':'light';document.documentElement.setAttribute('data-theme',state.theme);updateThemeColor();save()});
+$('themeBtn').addEventListener('click',()=>{state.theme=state.theme==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',state.theme);$('themeBtn').textContent=state.theme==='dark'?'☀️':'🌙';updateThemeColor();save()});
+$('notifToggle').addEventListener('change',e=>{state.notifSettings.enabled=e.target.checked;save();askNotifPermission()});
+$('vibToggle').addEventListener('change',e=>{state.notifSettings.vibrate=e.target.checked;save()});
+$('renotifyInput').addEventListener('change',e=>{state.notifSettings.reNotifyMin=Math.max(5,Number(e.target.value)||60);save()});
+$('testNotifBtn').addEventListener('click',()=>{notify('🔔 Синов','Билдиришнома тизими ишлаяпти')});
+$('changePassBtn').addEventListener('click',()=>{
+  openModal(`
+    <h2>🔑 Паролни ўзгартириш</h2>
+    <div class="field"><label>Эски парол</label><input id="cp_old" type="password"></div>
+    <div class="field"><label>Янги парол</label><input id="cp_new" type="password"></div>
+    <div class="field"><label>Янги паролни такрорланг</label><input id="cp_new2" type="password"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="cp_cancel">Бекор қилиш</button>
+      <button type="button" class="btn primary" id="cp_save">Сақлаш</button>
+    </div>`);
+  $('cp_cancel').addEventListener('click',()=>closeModal(false));
+  $('cp_save').addEventListener('click',async()=>{
+    const oldH=await hashPass($('cp_old').value);
+    if(oldH!==state.passwordHash){alert('Эски парол нотўғри');return}
+    const n1=$('cp_new').value,n2=$('cp_new2').value;
+    if(n1.length<4){alert('Янги парол камида 4 белги');return}
+    if(n1!==n2){alert('Пароллар мос эмас');return}
+    state.passwordHash=await hashPass(n1);save();closeModal(true);alert('Парол ўзгартирилди ✓');
+  });
+});
+$('exportBtn').addEventListener('click',()=>{
+  const data=JSON.stringify(state);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='moliy_aIjara_zaxira_'+todayStr()+'.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$('importBtn').addEventListener('click',()=>{
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=async ev=>{
+      try{
+        const obj=JSON.parse(ev.target.result);
+        const ok=await askConfirm('Тиклаш','Маълумот тикланади. Давом этасизми?','Тиклаш','primary');
+        if(!ok)return;
+        Object.assign(state,obj);
+        if(!Array.isArray(state.cars))state.cars=[];
+        state.cars.forEach(c=>{if(!c.startTime)c.startTime='09:00'});
+        save();document.documentElement.setAttribute('data-theme',state.theme);updateThemeColor();
+        setTimeout(()=>{showScreen('mainScreen');renderMain();alert('Тикланди ✓')},50);
+      }catch(err){alert('Файл хато: '+err.message)}
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+});
+$('resetBtn').addEventListener('click',async()=>{
+  const ok=await askConfirm('ҲАММА МАЪЛУМОТ ЎЧИРИЛАДИ','Бу амал қайтарилмайди! Ростдан ҳам давом этасизми?','Ҳа, ўчириш');
+  if(!ok)return;
+  localStorage.removeItem(KEY);localStorage.removeItem('moliyAIjara_v1');location.reload();
+});
+
+$('searchInput').addEventListener('input',()=>renderMain());
+$('sortSelect').addEventListener('change',()=>renderMain());
+
+/* ============ NOTIFICATIONS ============ */
+function vib(pattern){if(!state.notifSettings.vibrate)return;if(navigator.vibrate){try{navigator.vibrate(pattern||[200,100,200,100,400])}catch(e){}}}
+function askNotifPermission(){if(!state.notifSettings.enabled)return;if(!('Notification' in window))return;if(Notification.permission==='default')Notification.requestPermission().catch(()=>{})}
+function notify(title,body){
+  if(!state.notifSettings.enabled)return;
+  try{if('Notification' in window&&Notification.permission==='granted'){const n=new Notification(title,{body,badge:'💰',tag:'moliy_'+Date.now()});setTimeout(()=>{try{n.close()}catch(e){}},8000)}}catch(e){}
+  vib([300,120,300,120,500]);showBanner('🔔 '+title+' — '+body);
+}
+let bannerTimer;
+function showBanner(text){const b=$('banner');b.textContent=text;b.classList.add('active');clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>b.classList.remove('active'),6000)}
+function checkNotifications(){
+  if(!state.notifSettings.enabled)return;
+  const now=Date.now(),interval=(state.notifSettings.reNotifyMin||60)*60*1000;
+  state.cars.forEach(c=>{
+    const s=calc(c);if(s.done)return;
+    const due=s.nextDue;if(!due)return;
+    if(now>=due.getTime()){
+      const key=c.id+'_'+(s.paidCount+1)+'_'+due.toISOString().slice(0,10);
+      const last=lastNotify[key]||0;
+      if(now-last>interval){lastNotify[key]=now;notify('Тўлов вақти келди!',c.name+' — '+(c.renter||'ижарачи')+' — '+fmtMoney(c.monthlyPayment))}
+    }
+  });
+}
+function startNotifTimer(){if(notifTimer)clearInterval(notifTimer);notifTimer=setInterval(checkNotifications,30000)}
+
+/* ============ PWA INSTALL ============ */
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredInstall = e;
+  showInstallBox();
+});
+function showInstallBox(){
+  const box=$('installBox');
+  if(box) box.classList.add('show');
+}
+$('installBtn').addEventListener('click',async()=>{
+  if(!deferredInstall){
+    alert('Иловани ўрнатиш учун:\n\n1. Chrome менюсини очинг (⋮)\n2. «Иловани ўрнатиш» ёки «Add to Home screen» ни босинг');
+    return;
+  }
+  deferredInstall.prompt();
+  const res = await deferredInstall.userChoice;
+  deferredInstall = null;
+  if(res.outcome==='accepted'){
+    $('installBox').classList.remove('show');
+  }
+});
+window.addEventListener('appinstalled',()=>{
+  $('installBox').classList.remove('show');
+});
+
+/* ============ BOOT ============ */
+load();initLock();
+$('themeBtn').textContent=state.theme==='dark'?'☀️':'🌙';
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkNotifications();if($('mainScreen').classList.contains('active'))renderMain()}});
+window.addEventListener('beforeunload',()=>{try{save()}catch(e){}});
+</script>
+</body>
+</html>
