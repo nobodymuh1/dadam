@@ -241,6 +241,22 @@ table.filter-table tbody tr:active{background:var(--bg)}
 .tg-st{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.45}
 .stats{grid-template-columns:1fr 1fr}
 
+/* ============ v7 ============ */
+.ppl-row{border:1.5px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px;background:var(--bg)}
+.ppl-in{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ppl-in input{width:100%;min-width:0;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:14px;font-family:inherit}
+.ppl-in input:focus{outline:none;border-color:var(--primary)}
+.ppl-in input.inv{border-color:var(--danger)}
+.ppl-act{display:flex;gap:8px;margin-top:8px}
+.ppl-act .btn:first-child{flex:1}
+.ppl-st{font-size:11px;margin-top:6px;color:var(--muted)}
+.ppl-st.ok{color:var(--success)}.ppl-st.bad{color:var(--danger)}
+.seg{display:flex;gap:6px;margin:10px 0 6px}
+.seg .btn{flex:1;font-size:13px;padding:10px 6px}
+.seg .btn.on{background:var(--primary);color:#fff}
+.find-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.find-row .tl{min-width:0;flex:1}.find-row .tl b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.find-row .sub{font-size:12px;color:var(--muted)}
 /* ============ v6 ============ */
 .today-box{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
 .today-box.bad{border-left-color:var(--danger)}
@@ -461,6 +477,13 @@ table.filter-table tbody tr:active{background:var(--bg)}
       <div class="tg-st" id="tgStatus"></div>
       <p class="tg-st">Эслатма: тўлов куни ва муддат хабарлари илова очиқ бўлганда ёки очилганда юборилади.</p>
     </div>
+    <div class="section"><h3>👥 Телеграм: одамлар рўйхати</h3>
+      <p class="tg-st" style="margin:0 0 10px">Ижарачиларни шу ерга қўшинг: ном ва Телеграм чат ID. Ҳар бирига алоҳида хабар юбориш мумкин. Одам аввал ботга Телеграмда /start босиши керак.</p>
+      <div id="pplList"></div>
+      <button class="btn sm" id="pplAddBtn" style="width:100%;margin-top:4px">➕ Одам қўшиш</button>
+      <button class="btn sm" id="pplFindBtn" style="width:100%;margin-top:8px">🔍 Ботга /start босганларни топиш</button>
+      <p class="tg-st">ID ни қўлда излаш шарт эмас: одам ботга /start босгач «топиш» ни босинг ва рўйхатдан танланг.</p>
+    </div>
     <div class="section"><h3>Хавфсизлик</h3>
       <button class="btn block" id="changePassBtn">🔑 Паролни ўзгартириш</button>
       <button class="btn block" id="lockNowBtn">🔒 Ҳозир қулфлаш</button>
@@ -470,7 +493,7 @@ table.filter-table tbody tr:active{background:var(--bg)}
       <button class="btn block" id="importBtn">📥 Тиклаш (Импорт)</button>
       <button class="btn danger block" id="resetBtn">⚠️ Ҳаммасини ўчириш</button>
     </div>
-    <p style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0">Молия Ижара v6.0 — PWA<br>Redmi Note 13 учун мослашган</p>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0">Молия Ижара v7.0 — PWA<br>Redmi Note 13 учун мослашган</p>
   </div>
 </div>
 
@@ -505,7 +528,7 @@ table.filter-table tbody tr:active{background:var(--bg)}
 
 /* ================= STATE ================= */
 const KEY='moliyAIjara_v2';
-let state={version:6,passwordHash:null,theme:'light',cars:[],notifSettings:{enabled:true,vibrate:true,reNotifyMin:60},tg:{token:'',chatId:'',ev:{pay:true,rent:true,due:true,dead:true,weekly:false}},sent:{},tgQueue:[],backup:{last:0,tried:0}};
+let state={version:7,passwordHash:null,theme:'light',cars:[],notifSettings:{enabled:true,vibrate:true,reNotifyMin:60},tg:{token:'',chatId:'',ev:{pay:true,rent:true,due:true,dead:true,weekly:false}},sent:{},tgQueue:[],backup:{last:0,tried:0}};
 let lastNotify={},currentCarId=null,pendingDocs=[],pendingIshonch=null,isSaving=false,notifTimer=null;
 let modalResolve=null,deferredInstall=null;
 
@@ -533,6 +556,8 @@ function normalizeState(){
   if(!Array.isArray(state.cars))state.cars=[];
   if(!state.tg||typeof state.tg!=='object'||Array.isArray(state.tg))state.tg={};
   const t=state.tg;if(typeof t.token!=='string')t.token='';t.chatId=(t.chatId==null)?'':String(t.chatId);
+  if(!Array.isArray(t.people))t.people=[];
+  t.people=t.people.filter(p=>p&&typeof p==='object').slice(0,50).map(p=>({id:(typeof p.id==='string'&&p.id)?p.id:uid(),name:String(p.name==null?'':p.name).slice(0,40),chat:String(p.chat==null?'':p.chat).trim().slice(0,40),last:(p.last&&typeof p.last==='object')?{ok:!!p.last.ok,at:Number(p.last.at)||0,err:String(p.last.err||'')}:null}));
   if(!t.ev||typeof t.ev!=='object')t.ev={};
   ['pay','rent','due','dead'].forEach(k=>{if(typeof t.ev[k]!=='boolean')t.ev[k]=true});
   if(typeof t.ev.weekly!=='boolean')t.ev.weekly=false;
@@ -542,8 +567,8 @@ function normalizeState(){
   if(!Array.isArray(state.tgQueue))state.tgQueue=[];
   const lim=Date.now()-400*864e5;Object.keys(state.sent).forEach(k=>{if(!(state.sent[k]>lim))delete state.sent[k]});
   state.cars.forEach(c=>{if(!c.startTime)c.startTime='09:00';if(!Array.isArray(c.expenses))c.expenses=[];if(!Array.isArray(c.payments))c.payments=[];if(!Array.isArray(c.docs))c.docs=[]});
-  state.cars.forEach(c=>{if(typeof c.phone!=='string')c.phone='';c.price=Number(c.price)||0});
-  state.version=6;
+  state.cars.forEach(c=>{if(typeof c.phone!=='string')c.phone='';c.price=Number(c.price)||0;if(typeof c.tgTo!=='string')c.tgTo=''});
+  state.version=7;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){console.error(e);if(e.name==='QuotaExceededError')alert('Хотира тўлди!')}}
 async function hashPass(s){
@@ -802,6 +827,7 @@ function openRemind(carId){
     +(ph?'':'<p class="tg-st" style="margin:0 0 8px">Телефон киритилмаган. «Таҳрирлаш» орқали қўшсангиз, қўнғироқ ва SMS тугмалари ишлайди.</p>')
     +'<div class="modal-actions"><button type="button" class="btn" id="rm_call"'+(ph?'':' disabled')+'>📞 Қўнғироқ</button><button type="button" class="btn" id="rm_sms"'+(ph?'':' disabled')+'>💬 SMS</button></div>'
     +'<div class="modal-actions"><button type="button" class="btn" id="rm_tg">✈️ Телеграм</button><button type="button" class="btn" id="rm_copy">📋 Нусха</button></div>'
+    +'<div class="modal-actions"><button type="button" class="btn" id="rm_bot">✉️ Ижарачига бот орқали юбориш</button></div>'
     +'<div class="modal-actions"><button type="button" class="btn primary" id="rm_close">Ёпиш</button></div>');
   $('rm_text').value=tenantMsg(c);
   const txt=()=>$('rm_text').value;
@@ -809,6 +835,7 @@ function openRemind(carId){
   $('rm_sms').addEventListener('click',()=>go('sms:'+ph+'?body='+encodeURIComponent(txt())));
   $('rm_tg').addEventListener('click',()=>go('https://t.me/share/url?url=%20&text='+encodeURIComponent(txt())));
   $('rm_copy').addEventListener('click',async()=>{const ok=await copyText(txt());alert(ok?'Нусха олинди ✓':'Нусха олиб бўлмади')});
+  $('rm_bot').addEventListener('click',()=>{const t=txt();closeModal(false);openCompose({carId:c.id,text:t})});
   $('rm_close').addEventListener('click',()=>closeModal(false));
 }
 
@@ -1318,6 +1345,7 @@ function openCar(id){
     ${finHtml}${roiHtml(c,s)}${trustHtml(c,s)}
     <button type="button" class="btn success block" id="payNowBtn">💰 Тўлов қабул қилиш</button>
     <button type="button" class="btn block" id="remindBtn">📩 Ижарачига эслатма</button>
+    <button type="button" class="btn block" id="letterBtn">✉️ Ижарачига хат юбориш (Телеграм бот)</button>
     <button type="button" class="btn block" id="editCarBtn">✏️ Таҳрирлаш</button>
     <div class="section"><h3>📅 Тўлов жадвали</h3>${schedHtml}</div>
     ${deadHtml}
@@ -1329,6 +1357,7 @@ function openCar(id){
   $('editCarBtn').addEventListener('click',()=>openCarForm(c.id));
   $('addExpBtn').addEventListener('click',()=>openExpenseForm(c.id));
   $('remindBtn').addEventListener('click',()=>openRemind(c.id));
+  $('letterBtn').addEventListener('click',()=>openCompose({carId:c.id}));
   $('detailContent').querySelectorAll('[data-rcpt]').forEach(el=>{el.addEventListener('click',()=>openReceipt(c.id,Number(el.dataset.rcpt)))});
   $('detailContent').querySelectorAll('[data-rmexp]').forEach(el=>{el.addEventListener('click',()=>removeExpense(c.id,el.dataset.rmexp))});
   const viewIsh=$('viewIshBtn');if(viewIsh)viewIsh.addEventListener('click',()=>viewDoc(c.id,'ishonch',0));
@@ -1489,7 +1518,7 @@ function tgStatusRender(){
 function tgUI(){
   $('tgToken').value=state.tg.token||'';$('tgChat').value=state.tg.chatId||'';
   $('tgEvPay').checked=state.tg.ev.pay;$('tgEvRent').checked=state.tg.ev.rent;$('tgEvDue').checked=state.tg.ev.due;$('tgEvDead').checked=state.tg.ev.dead;$('tgEvWeekly').checked=!!state.tg.ev.weekly;
-  tgStatusRender();
+  tgStatusRender();peopleRender();
 }
 $('tgToken').addEventListener('change',e=>{state.tg.token=e.target.value.trim();save();tgStatusRender();flushTg()});
 $('tgChat').addEventListener('change',e=>{state.tg.chatId=e.target.value.trim();save();tgStatusRender();flushTg()});
@@ -1514,6 +1543,145 @@ $('tgFindBtn').addEventListener('click',async()=>{
     const id=String(ids[ids.length-1]);state.tg.chatId=id;$('tgChat').value=id;save();tgStatusRender();alert('Чат ID топилди: '+id);
   }catch(e){alert('Интернетга уланиб бўлмади')}
 });
+
+/* ---- v7: Телеграм одамлар рўйхати ва хат юбориш ---- */
+function peopleList(){if(!Array.isArray(state.tg.people))state.tg.people=[];return state.tg.people}
+function personById(id){return peopleList().find(p=>p.id===id)}
+async function tgSendTo(chat,text){
+  const t=state.tg;
+  if(!tgTokenOk(t.token))return{ok:false,err:'Бот токени йўқ ёки нотўғри'};
+  if(!tgChatOk(chat))return{ok:false,err:'Чат ID нотўғри'};
+  try{
+    const r=await fetch('https://api.telegram.org/bot'+t.token.trim()+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:String(chat).trim(),text:text,parse_mode:'HTML',disable_web_page_preview:true})});
+    let j={};try{j=await r.json()}catch(e){}
+    if(r.ok&&j.ok)return{ok:true};
+    return{ok:false,err:(j&&j.description)||('HTTP '+r.status)};
+  }catch(e){return{ok:false,err:'net'}}
+}
+function peopleRender(){
+  const box=$('pplList');if(!box)return;
+  const L=peopleList();
+  box.innerHTML=L.length?L.map(p=>'<div class="ppl-row" data-pid="'+esc(p.id)+'"><div class="ppl-in"><input type="text" class="ppl-name" value="'+esc(p.name)+'" placeholder="Ном (масалан: Акмал)" maxlength="40" autocomplete="off"><input type="text" class="ppl-chat'+(p.chat&&!tgChatOk(p.chat)?' inv':'')+'" inputmode="numeric" value="'+esc(p.chat)+'" placeholder="Чат ID" maxlength="40" autocomplete="off"></div>'
+    +'<div class="ppl-act"><button type="button" class="btn sm primary" data-psend="'+esc(p.id)+'">✉️ Хабар юбориш</button><button type="button" class="btn sm" data-pdel="'+esc(p.id)+'" aria-label="Ўчириш">🗑</button></div>'
+    +(p.last?'<div class="ppl-st '+(p.last.ok?'ok':'bad')+'">'+(p.last.ok?'✓ охирги хабар: '+fmtDateTime(new Date(p.last.at)):'❌ '+esc(p.last.err))+'</div>':'')+'</div>').join(''):'<p class="tg-st" style="margin:0 0 8px">Ҳали ҳеч ким қўшилмаган.</p>';
+}
+function peopleSyncRow(row){
+  const p=personById(row.dataset.pid);if(!p)return null;
+  p.name=row.querySelector('.ppl-name').value.trim();
+  p.chat=row.querySelector('.ppl-chat').value.trim();
+  row.querySelector('.ppl-chat').classList.toggle('inv',!!p.chat&&!tgChatOk(p.chat));
+  save();return p;
+}
+$('pplList').addEventListener('change',e=>{const row=e.target.closest('.ppl-row');if(row)peopleSyncRow(row)});
+$('pplList').addEventListener('click',async e=>{
+  const sb=e.target.closest('[data-psend]');
+  if(sb){const row=sb.closest('.ppl-row');const p=peopleSyncRow(row);if(!p)return;openCompose({pid:p.id});return}
+  const db=e.target.closest('[data-pdel]');
+  if(db){
+    const p=personById(db.dataset.pdel);if(!p)return;
+    const ok=await askConfirm('Ўчириш','«'+(p.name||'Номсиз')+'» рўйхатдан ўчирилади. Давом этасизми?','Ўчириш');
+    if(!ok)return;
+    state.tg.people=peopleList().filter(x=>x.id!==p.id);
+    state.cars.forEach(c=>{if(c.tgTo===p.id)c.tgTo=''});
+    save();peopleRender();
+  }
+});
+$('pplAddBtn').addEventListener('click',()=>{
+  if(peopleList().length>=50){alert('Рўйхат тўлган (50 та)');return}
+  peopleList().push({id:uid(),name:'',chat:'',last:null});save();peopleRender();
+  const rows=document.querySelectorAll('#pplList .ppl-row');const r=rows[rows.length-1];
+  if(r){const i=r.querySelector('.ppl-name');if(i)i.focus()}
+});
+async function openFind(){
+  const tok=(state.tg.token||'').trim();
+  if(!tgTokenOk(tok)){alert('Аввал юқорида бот токенини тўғри киритинг');return}
+  let j;
+  try{const r=await fetch('https://api.telegram.org/bot'+tok+'/getUpdates?limit=100&timeout=0');j=await r.json()}catch(e){alert('Интернетга уланиб бўлмади');return}
+  if(!j||!j.ok){alert('Хато: '+tgErrText(j&&j.description));return}
+  let uname='';
+  try{const r2=await fetch('https://api.telegram.org/bot'+tok+'/getMe');const j2=await r2.json();if(j2&&j2.ok&&j2.result&&j2.result.username)uname=String(j2.result.username)}catch(e){}
+  const seen=new Map();
+  (Array.isArray(j.result)?j.result:[]).forEach(u=>{const m=u&&(u.message||u.edited_message);const ch=m&&m.chat;if(!ch||ch.id==null||ch.type!=='private')return;
+    const nm=[ch.first_name,ch.last_name].filter(Boolean).join(' ')||(ch.username?'@'+ch.username:'');
+    seen.set(String(ch.id),{id:String(ch.id),name:nm,un:ch.username||''})});
+  const list=[...seen.values()];
+  const have=()=>new Set(peopleList().map(p=>String(p.chat)));
+  const link=uname?'https://t.me/'+uname:'';
+  openModal('<h2>🔍 Ботга /start босганлар</h2>'
+    +(link?'<p class="tg-st" style="margin:0 0 8px">Ижарачига шу ҳаволани юборинг, у босиб «Start» ни босади:<br><b>'+esc(link)+'</b></p><div class="modal-actions" style="margin-top:6px"><button type="button" class="btn sm" id="fd_copy">📋 Ҳаволани нусхалаш</button></div>':'')
+    +'<div id="fd_list" style="margin-top:10px">'+(list.length?list.map(x=>{
+        const dis=have().has(x.id)||String(state.tg.chatId)===x.id;
+        return '<div class="find-row"><div class="tl"><b>'+esc(x.name||'Номаълум')+'</b><div class="sub">ID: '+esc(x.id)+(String(state.tg.chatId)===x.id?' · асосий чат':'')+'</div></div><button type="button" class="btn sm" data-fadd="'+esc(x.id)+'"'+(dis?' disabled':'')+'>'+(dis?'✓ қўшилган':'➕ Қўшиш')+'</button></div>'}).join(''):'<p class="tg-st">Ҳеч ким топилмади. Ижарачи ботга Телеграмда /start босиши керак, кейин қайта уриниб кўринг.</p>')+'</div>'
+    +'<p class="tg-st">Одам /start босгач 24 соат ичида топилади. Рўйхатга қўшсангиз, ID доимий сақланади.</p>'
+    +'<div class="modal-actions"><button type="button" class="btn primary" id="fd_close">Ёпиш</button></div>');
+  const fc=$('fd_copy');if(fc)fc.addEventListener('click',async()=>{const ok=await copyText(link);alert(ok?'Нусха олинди ✓':'Нусха олиб бўлмади')});
+  $('fd_list').addEventListener('click',e=>{
+    const b=e.target.closest('[data-fadd]');if(!b||b.disabled)return;
+    const x=seen.get(b.dataset.fadd);if(!x)return;
+    if(peopleList().length>=50){alert('Рўйхат тўлган (50 та)');return}
+    peopleList().push({id:uid(),name:x.name,chat:x.id,last:null});save();peopleRender();
+    b.disabled=true;b.textContent='✓ қўшилган';
+  });
+  $('fd_close').addEventListener('click',()=>closeModal(false));
+}
+$('pplFindBtn').addEventListener('click',()=>{state.tg.token=($('tgToken').value||state.tg.token||'').trim();save();openFind()});
+
+function openCompose(opt){
+  opt=opt||{};
+  const c=opt.carId?state.cars.find(x=>x.id===opt.carId):null;
+  const L=peopleList();
+  if(!tgTokenOk(state.tg.token)){alert('Аввал Созламаларда бот токенини киритинг');return}
+  if(!L.length){alert('Аввал Созламалар → Телеграм → «Одамлар рўйхати» га ижарачини қўшинг');return}
+  let sel=opt.pid||(c&&c.tgTo)||'';
+  if(!personById(sel)&&c&&c.renter){
+    const rn=c.renter.trim().toLowerCase();
+    let m=rn?L.find(p=>p.name.trim().toLowerCase()===rn):null;
+    if(!m&&rn)m=L.find(p=>{const pn=p.name.trim().toLowerCase();return pn&&(rn.includes(pn)||pn.includes(rn))});
+    if(m)sel=m.id;
+  }
+  if(!personById(sel))sel=L[0].id;
+  let mode=c?'ready':'own';
+  const txt={own:'',ready:c?(opt.text||tenantMsg(c)):''};
+  openModal('<h2>✉️ Хабар юбориш</h2>'
+    +(c?'<div class="kv"><span>Машина</span><span>'+esc(c.name)+' · '+esc(c.renter||'—')+'</span></div>':'')
+    +'<div class="field" style="margin-top:10px"><label>Кимга</label><select id="cp_to">'+L.map(p=>'<option value="'+esc(p.id)+'"'+(p.id===sel?' selected':'')+'>'+esc(p.name||'Номсиз')+'</option>').join('')+'</select></div>'
+    +(c?'<div class="seg"><button type="button" class="btn" id="cp_m_own">✍️ Шахсий хабар</button><button type="button" class="btn" id="cp_m_ready">📋 Тайёр огоҳлантириш</button></div>':'')
+    +'<p class="tg-st" id="cp_hint" style="margin:0 0 8px"></p>'
+    +'<div class="field"><textarea id="cp_text" rows="6" maxlength="3500"></textarea></div>'
+    +'<div class="modal-actions"><button type="button" class="btn" id="cp_close">Ёпиш</button><button type="button" class="btn primary" id="cp_send">✈️ Юбориш</button></div>'
+    +'<div class="tg-st" id="cp_st"></div>');
+  const who=()=>personById($('cp_to').value);
+  function paint(){
+    $('cp_text').value=txt[mode];
+    $('cp_text').placeholder=mode==='own'?'Ўзингиз ёзинг, бот етказади…':'';
+    $('cp_hint').textContent=mode==='own'?'Ўзингиз ёзасиз, бот ижарачининг Телеграмига етказади.':'Тўлов ҳолатига қараб тайёр матн. Хоҳласангиз таҳрирлаб юборинг.';
+    if(c){$('cp_m_own').classList.toggle('on',mode==='own');$('cp_m_ready').classList.toggle('on',mode==='ready')}
+    const p=who();$('cp_send').textContent='✈️ Юбориш → '+(p&&p.name?p.name:'Номсиз');
+  }
+  paint();
+  if(c){
+    $('cp_m_own').addEventListener('click',()=>{if(mode==='own')return;txt[mode]=$('cp_text').value;mode='own';paint()});
+    $('cp_m_ready').addEventListener('click',()=>{if(mode==='ready')return;txt[mode]=$('cp_text').value;mode='ready';paint()});
+  }
+  $('cp_to').addEventListener('change',()=>{const p=who();$('cp_send').textContent='✈️ Юбориш → '+(p&&p.name?p.name:'Номсиз')});
+  $('cp_close').addEventListener('click',()=>closeModal(false));
+  $('cp_send').addEventListener('click',async()=>{
+    const p=who();const body=$('cp_text').value.trim();
+    if(!p){return}
+    if(!body){$('cp_st').textContent='⚠️ Аввал матн ёзинг';return}
+    if(!tgChatOk(p.chat)){$('cp_st').textContent='⚠️ «'+(p.name||'Номсиз')+'» учун чат ID нотўғри. Созламаларда тўғриланг.';return}
+    const b=$('cp_send');b.disabled=true;$('cp_st').textContent='Юборилмоқда…';
+    const r=await tgSendTo(p.chat,esc(body));
+    p.last={ok:r.ok,at:Date.now(),err:r.ok?'':tgErrText(r.err)};
+    if(r.ok&&c)c.tgTo=p.id;
+    try{save()}catch(e){}
+    peopleRender();
+    const st=$('cp_st');if(!st)return;
+    b.disabled=false;
+    if(r.ok){st.textContent='✅ Юборилди: '+(p.name||'Номсиз');b.textContent='✈️ Яна юбориш → '+(p.name||'Номсиз')}
+    else st.textContent='❌ Юборилмади: '+tgErrText(r.err);
+  });
+}
 $('tgEvWeekly').addEventListener('change',async e=>{
   const on=e.target.checked;
   if(on){
@@ -1572,6 +1740,7 @@ $('importBtn').addEventListener('click',()=>{
         normalizeState();
         if(!state.tg.token&&keepTg.token)state.tg.token=keepTg.token;
         if(!state.tg.chatId&&keepTg.chatId)state.tg.chatId=keepTg.chatId;
+        if(!(state.tg.people&&state.tg.people.length)&&keepTg.people&&keepTg.people.length)state.tg.people=keepTg.people;
         save();document.documentElement.setAttribute('data-theme',state.theme);updateThemeColor();
         setTimeout(()=>{showScreen('mainScreen');renderMain();alert('Тикланди ✓')},50);
       }catch(err){alert('Файл хато: '+err.message)}
