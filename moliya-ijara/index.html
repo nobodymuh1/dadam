@@ -240,6 +240,44 @@ table.filter-table tbody tr:active{background:var(--bg)}
 .pay-item .amt.neg{color:var(--danger)}
 .tg-st{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.45}
 .stats{grid-template-columns:1fr 1fr}
+
+/* ============ v6 ============ */
+.today-box{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.today-box.bad{border-left-color:var(--danger)}
+.today-box h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:700}
+.today-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.today-row:last-child{border-bottom:none}
+.today-row .tl{min-width:0;flex:1}
+.today-row .tl b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.today-row .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.today-row .sub .late{color:var(--danger);font-weight:700}
+.today-row .sub .soon{color:var(--warn);font-weight:700}
+.mini-btn{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:16px;cursor:pointer;color:var(--text);flex-shrink:0}
+.mini-btn:active{transform:scale(.94)}
+.stat.wide{grid-column:1/-1}
+.stat .bar{height:7px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:8px}
+.stat .bar>div{height:100%;background:var(--success)}
+.tc{font-weight:700}.tc.ok{color:var(--success)}.tc.bad{color:var(--danger)}
+.stars,.kv span.stars{color:#f59e0b;letter-spacing:1px}
+.chart-bars{height:176px}
+.stars i{font-style:normal;color:var(--border)}
+.rcpt-img{width:100%;border-radius:12px;border:1px solid var(--border);display:block}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.sum-grid>div{background:var(--bg);border-radius:10px;padding:8px 6px;text-align:center;font-size:11px;color:var(--muted)}
+.sum-grid b{display:block;font-size:13px;margin-top:3px;word-break:break-word}
+.print-only{display:none}
+.field textarea{resize:vertical;line-height:1.45}
+@media print{
+  html,body{background:#fff!important;color:#000!important;height:auto;overflow:visible}
+  #reportsScreen .topbar,#reportsScreen .table-filter,.no-print,#modal,#banner,#moneyAnim{display:none!important}
+  #reportsScreen{display:block!important;min-height:0}
+  .print-only{display:block!important;margin-bottom:10px;font-size:16px}
+  .section,.table-wrap{box-shadow:none!important;border:1px solid #bbb;break-inside:avoid;background:#fff!important}
+  table.filter-table{min-width:0;font-size:10px}
+  table.filter-table th,table.filter-table td{padding:5px}
+  .table-scroll{overflow:visible}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -310,6 +348,7 @@ table.filter-table tbody tr:active{background:var(--bg)}
       <button class="btn" id="installBtn">Иловани ўрнатиш</button>
     </div>
     <div class="stats" id="stats"></div>
+    <div id="todayBox"></div>
     <div id="deadBox"></div>
     <div class="chart-card">
       <h3>📊 Охирги 6 ой: тушум ва харажат</h3>
@@ -351,6 +390,13 @@ table.filter-table tbody tr:active{background:var(--bg)}
     <span class="spacer"></span>
   </header>
   <div class="content">
+    <div class="section" id="repSummary">
+      <div class="print-only"><b>Молия Ижара — ҳисобот</b> · <span id="repPrintDate"></span></div>
+      <h3>🗓 Ойлик ҳисобот</h3>
+      <div class="field no-print"><input type="month" id="repMonth"></div>
+      <div id="repMonthBody"></div>
+      <div class="modal-actions no-print"><button type="button" class="btn sm" id="repPrintBtn">🖨 Чоп этиш / PDF</button><button type="button" class="btn sm primary" id="repTgBtn">✈️ Телеграмга</button></div>
+    </div>
     <div class="table-filter">
       <input type="text" id="tableFilterInput" placeholder="🔍 Қидириш (машина, ижарачи...)">
     </div>
@@ -367,6 +413,7 @@ table.filter-table tbody tr:active{background:var(--bg)}
               <th>Соф</th>
               <th>Қолдиқ</th>
               <th>Ҳолат</th>
+              <th>Рейтинг</th>
             </tr>
           </thead>
           <tbody id="filterTableBody"></tbody>
@@ -407,7 +454,10 @@ table.filter-table tbody tr:active{background:var(--bg)}
       <div class="toggle-row"><span>🚗 Машина ижарага берилганда</span><label class="switch"><input type="checkbox" id="tgEvRent"><span class="slider"></span></label></div>
       <div class="toggle-row"><span>🔔 Тўлов куни келганда</span><label class="switch"><input type="checkbox" id="tgEvDue"><span class="slider"></span></label></div>
       <div class="toggle-row"><span>⏰ Муддатлар (суғурта, техкўрик)</span><label class="switch"><input type="checkbox" id="tgEvDead"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>📊 Ҳафталик хулоса + захира файли</span><label class="switch"><input type="checkbox" id="tgEvWeekly"><span class="slider"></span></label></div>
       <button class="btn primary sm" id="tgTestBtn" style="width:100%;margin-top:10px">📨 Синов хабарини юбориш</button>
+      <button class="btn sm" id="tgBackupBtn" style="width:100%;margin-top:8px">💾 Захирани ҳозир Телеграмга юбориш</button>
+      <p class="tg-st">Ҳафталик хулоса ёқилса, ҳар 7 кунда (илова очиқ бўлганда) қисқа ҳисобот ва захира файли юборилади. Файлда ҳужжат расмлари бор, бот токени йўқ.</p>
       <div class="tg-st" id="tgStatus"></div>
       <p class="tg-st">Эслатма: тўлов куни ва муддат хабарлари илова очиқ бўлганда ёки очилганда юборилади.</p>
     </div>
@@ -420,7 +470,7 @@ table.filter-table tbody tr:active{background:var(--bg)}
       <button class="btn block" id="importBtn">📥 Тиклаш (Импорт)</button>
       <button class="btn danger block" id="resetBtn">⚠️ Ҳаммасини ўчириш</button>
     </div>
-    <p style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0">Молия Ижара v5.0 — PWA<br>Redmi Note 13 учун мослашган</p>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0">Молия Ижара v6.0 — PWA<br>Redmi Note 13 учун мослашган</p>
   </div>
 </div>
 
@@ -455,7 +505,7 @@ table.filter-table tbody tr:active{background:var(--bg)}
 
 /* ================= STATE ================= */
 const KEY='moliyAIjara_v2';
-let state={version:5,passwordHash:null,theme:'light',cars:[],notifSettings:{enabled:true,vibrate:true,reNotifyMin:60},tg:{token:'',chatId:'',ev:{pay:true,rent:true,due:true,dead:true}},sent:{},tgQueue:[]};
+let state={version:6,passwordHash:null,theme:'light',cars:[],notifSettings:{enabled:true,vibrate:true,reNotifyMin:60},tg:{token:'',chatId:'',ev:{pay:true,rent:true,due:true,dead:true,weekly:false}},sent:{},tgQueue:[],backup:{last:0,tried:0}};
 let lastNotify={},currentCarId=null,pendingDocs=[],pendingIshonch=null,isSaving=false,notifTimer=null;
 let modalResolve=null,deferredInstall=null;
 
@@ -485,11 +535,15 @@ function normalizeState(){
   const t=state.tg;if(typeof t.token!=='string')t.token='';t.chatId=(t.chatId==null)?'':String(t.chatId);
   if(!t.ev||typeof t.ev!=='object')t.ev={};
   ['pay','rent','due','dead'].forEach(k=>{if(typeof t.ev[k]!=='boolean')t.ev[k]=true});
+  if(typeof t.ev.weekly!=='boolean')t.ev.weekly=false;
+  if(!state.backup||typeof state.backup!=='object'||Array.isArray(state.backup))state.backup={};
+  if(!(state.backup.last>0))state.backup.last=0;if(!(state.backup.tried>0))state.backup.tried=0;
   if(!state.sent||typeof state.sent!=='object'||Array.isArray(state.sent))state.sent={};
   if(!Array.isArray(state.tgQueue))state.tgQueue=[];
   const lim=Date.now()-400*864e5;Object.keys(state.sent).forEach(k=>{if(!(state.sent[k]>lim))delete state.sent[k]});
   state.cars.forEach(c=>{if(!c.startTime)c.startTime='09:00';if(!Array.isArray(c.expenses))c.expenses=[];if(!Array.isArray(c.payments))c.payments=[];if(!Array.isArray(c.docs))c.docs=[]});
-  state.version=5;
+  state.cars.forEach(c=>{if(typeof c.phone!=='string')c.phone='';c.price=Number(c.price)||0});
+  state.version=6;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){console.error(e);if(e.name==='QuotaExceededError')alert('Хотира тўлди!')}}
 async function hashPass(s){
@@ -560,6 +614,7 @@ function cardExtra(c,s){
   if((c.expenses||[]).length)h+='<div class="row"><span>Соф фойда</span><b style="color:'+(s.net>=0?'var(--success)':'var(--danger)')+'">'+fmtMoney(s.net)+'</b></div>';
   const w=deadList(c).filter(d=>d.cls!=='ok').sort((a,b)=>a.left-b.left)[0];
   if(w&&!s.done)h+='<div class="row"><span>⏰ '+w.icon+' '+w.label+'</span><b class="dl '+w.cls+'">'+leftText(w.left)+'</b></div>';
+  const tr=trust(c,s);if(tr)h+='<div class="row"><span>Ишончлилик</span><b>'+starsHtml(tr.stars)+' '+tr.pct+'%</b></div>';
   return h;
 }
 
@@ -680,6 +735,322 @@ function checkTgDue(){
   if(changed)save();
 }
 
+
+/* ============ v6: ЧЕК / РЕЙТИНГ / ҚОПЛАНИШ / БУГУН / ХУЛОСА ============ */
+const dayNumOf=d=>Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+function dayOfStr(s){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||''));return m?Math.floor(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null}
+function fmtDay(n){const d=new Date(n*864e5);return String(d.getUTCDate()).padStart(2,'0')+'.'+String(d.getUTCMonth()+1).padStart(2,'0')+'.'+d.getUTCFullYear()}
+function starsHtml(k){return '<span class="stars">'+'★'.repeat(k)+'<i>'+'★'.repeat(5-k)+'</i></span>'}
+const TRUST_LBL=['','Хавфли','Паст','Ўрта','Яхши','Аъло'];
+const cut=(t,n)=>{t=String(t==null?'':t);return t.length>n?t.slice(0,n-1)+'…':t};
+function go(url){try{if(/^https?:/i.test(url))window.open(url,'_blank','noopener');else location.href=url}catch(e){}}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){
+    try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok}catch(e2){return false}
+  }
+}
+function phoneNorm(p){const raw=String(p||'').trim();const d=raw.replace(/\D/g,'');if(d.length<7)return '';if(d.length===9)return '+998'+d;if(d.length===12&&d.indexOf('998')===0)return '+'+d;return (raw.charAt(0)==='+'?'+':'')+d}
+
+/* ---- Кечикиш / бугунги тўловлар ---- */
+function arrears(c,s){
+  s=s||calc(c);
+  if(s.done||!s.nextDue)return{n:0,sum:0,days:0};
+  const now=Date.now();let n=0;
+  for(let i=s.paidCount;i<s.sched.length;i++){if(s.sched[i].getTime()<=now)n++;else break}
+  const days=n?Math.max(0,dayNumOf(new Date())-dayNumOf(s.sched[s.paidCount])):0;
+  return{n:n,sum:n*s.monthly,days:days};
+}
+function todayItems(){
+  const items=[],today=dayNumOf(new Date());
+  state.cars.forEach(c=>{
+    const s=calc(c);if(s.done||!s.nextDue)return;
+    const a=arrears(c,s),dd=dayNumOf(s.nextDue)-today;
+    if(a.n>0)items.push({c:c,s:s,kind:'late',n:a.n,sum:a.sum,days:a.days,sort:-1000-a.days});
+    else if(dd===0||dd===1)items.push({c:c,s:s,kind:dd===0?'today':'tomorrow',n:1,sum:s.monthly,days:0,sort:dd});
+  });
+  items.sort((x,y)=>x.sort-y.sort);
+  return items;
+}
+function renderToday(){
+  const box=$('todayBox');if(!box)return;
+  const items=todayItems();
+  if(!items.length){box.innerHTML='';return}
+  const anyLate=items.some(x=>x.kind==='late');
+  box.innerHTML='<div class="today-box'+(anyLate?' bad':'')+'"><h3>📌 Бугун ва кечиккан тўловлар ('+items.length+')</h3>'+items.slice(0,8).map(x=>{
+    let st;
+    if(x.kind==='late')st=x.days>=1?'<span class="late">'+x.days+' кун кечикди</span>'+(x.n>1?' · '+x.n+' ой':''):'<span class="late">бугун, вақти ўтди</span>'+(x.n>1?' · '+x.n+' ой':'');
+    else if(x.kind==='today')st='<span class="soon">бугун '+esc(x.c.startTime||'')+'</span>';
+    else st='<span class="soon">эртага '+esc(x.c.startTime||'')+'</span>';
+    return '<div class="today-row" data-id="'+esc(x.c.id)+'"><div class="tl"><b>🚗 '+esc(x.c.name)+'</b><div class="sub">'+esc(x.c.renter||'—')+' · '+fmtMoney(x.sum)+' · '+st+'</div></div><button type="button" class="mini-btn" data-remind="'+esc(x.c.id)+'" aria-label="Эслатма">📩</button></div>';
+  }).join('')+(items.length>8?'<div class="today-row" style="color:var(--muted);cursor:default">… яна '+(items.length-8)+' та</div>':'')+'</div>';
+}
+
+/* ---- Ижарачига эслатма ---- */
+function tenantMsg(c){
+  const s=calc(c),a=arrears(c,s);
+  let t='Ассалому алайкум'+(c.renter?', '+c.renter:'')+'! ';
+  if(a.n>0)t+='«'+c.name+'» машинаси ижараси бўйича '+fmtMoney(a.sum)+' тўлов муддати ўтган'+(a.days>0?' ('+a.days+' кун)':'')+'. Илтимос, тўловни тезроқ амалга оширинг.';
+  else if(s.nextDue)t+='«'+c.name+'» машинаси ижараси бўйича '+fmtMoney(c.monthlyPayment)+' тўлов муддати: '+fmtDateTime(s.nextDue)+'. Эслатиб ўтамиз.';
+  else t+='«'+c.name+'» машинаси ижараси бўйича барча тўловлар тугаган.';
+  return t+' Раҳмат!';
+}
+function openRemind(carId){
+  const c=state.cars.find(x=>x.id===carId);if(!c)return;
+  const ph=phoneNorm(c.phone);
+  openModal('<h2>📩 Ижарачига эслатма</h2><div class="kv"><span>Ижарачи</span><span>'+esc(c.renter||'—')+(ph?' · '+esc(ph):'')+'</span></div>'
+    +'<div class="field" style="margin-top:12px"><label>Матн (таҳрирлаш мумкин)</label><textarea id="rm_text" rows="5"></textarea></div>'
+    +(ph?'':'<p class="tg-st" style="margin:0 0 8px">Телефон киритилмаган. «Таҳрирлаш» орқали қўшсангиз, қўнғироқ ва SMS тугмалари ишлайди.</p>')
+    +'<div class="modal-actions"><button type="button" class="btn" id="rm_call"'+(ph?'':' disabled')+'>📞 Қўнғироқ</button><button type="button" class="btn" id="rm_sms"'+(ph?'':' disabled')+'>💬 SMS</button></div>'
+    +'<div class="modal-actions"><button type="button" class="btn" id="rm_tg">✈️ Телеграм</button><button type="button" class="btn" id="rm_copy">📋 Нусха</button></div>'
+    +'<div class="modal-actions"><button type="button" class="btn primary" id="rm_close">Ёпиш</button></div>');
+  $('rm_text').value=tenantMsg(c);
+  const txt=()=>$('rm_text').value;
+  $('rm_call').addEventListener('click',()=>go('tel:'+ph));
+  $('rm_sms').addEventListener('click',()=>go('sms:'+ph+'?body='+encodeURIComponent(txt())));
+  $('rm_tg').addEventListener('click',()=>go('https://t.me/share/url?url=%20&text='+encodeURIComponent(txt())));
+  $('rm_copy').addEventListener('click',async()=>{const ok=await copyText(txt());alert(ok?'Нусха олинди ✓':'Нусха олиб бўлмади')});
+  $('rm_close').addEventListener('click',()=>closeModal(false));
+}
+
+/* ---- Ижарачи ишончлилиги ---- */
+function trust(c,s){
+  s=s||calc(c);
+  const rows=[];
+  (c.payments||[]).slice(0,s.totalMonths).forEach((p,i)=>{
+    const due=s.sched[i],pd=dayOfStr(p.date);
+    if(!due||pd==null)return;
+    rows.push({paid:true,d:pd-dayNumOf(due)});
+  });
+  let cur=0;
+  const a=arrears(c,s);
+  if(a.n>0){
+    cur=a.days;const today=dayNumOf(new Date());
+    for(let i=s.paidCount;i<s.paidCount+a.n;i++){const d=today-dayNumOf(s.sched[i]);if(d>1)rows.push({paid:false,d:d})}
+  }
+  const n=rows.length;if(!n)return null;
+  const onTime=rows.filter(x=>x.d<=1).length;
+  const paid=rows.filter(x=>x.paid);
+  const avg=paid.length?paid.reduce((t,x)=>t+Math.max(0,x.d),0)/paid.length:0;
+  const max=Math.max(0,rows.reduce((t,x)=>Math.max(t,x.d),0));
+  const pct=Math.round(onTime/n*100);
+  const stars=pct>=90?5:(pct>=75?4:(pct>=60?3:(pct>=40?2:1)));
+  return{n:n,onTime:onTime,pct:pct,stars:stars,label:TRUST_LBL[stars],avg:avg,max:max,cur:cur,cls:stars>=4?'ok':(stars===3?'warn':'bad')};
+}
+function trustHtml(c,s){
+  const t=trust(c,s);
+  const head='<div class="section"><h3>🤝 Ижарачи ишончлилиги</h3>';
+  if(!t)return head+'<p style="color:var(--muted);font-size:13px">Биринчи тўловдан кейин ҳисобланади</p></div>';
+  return head
+    +'<div class="kv"><span>Баҳо</span><span>'+starsHtml(t.stars)+' '+t.label+'</span></div>'
+    +'<div class="kv"><span>Вақтида тўланган</span><span>'+t.onTime+' / '+t.n+' ('+t.pct+'%)</span></div>'
+    +'<div class="kv"><span>Ўртача кечикиш</span><span>'+(Math.round(t.avg*10)/10)+' кун</span></div>'
+    +'<div class="kv"><span>Энг узоқ кечикиш</span><span>'+t.max+' кун</span></div>'
+    +'<div class="kv"><span>Ҳозир</span><span class="tc '+(t.cur>0?'bad':'ok')+'">'+(t.cur>0?t.cur+' кун кечикмоқда':'кечикиш йўқ')+'</span></div>'
+    +'<p class="tg-st" style="margin-top:8px">1 кунгача кечикиш вақтида ҳисобланади.</p></div>';
+}
+
+/* ---- Машина қопланиши ---- */
+function roi(c,s){
+  s=s||calc(c);
+  const price=Number(c.price)||0;if(price<=0)return null;
+  const init=Number(c.initial)||0;
+  const returned=init+s.paidSum-s.expSum;
+  const remain=Math.max(0,price-returned);
+  const pct=Math.max(0,Math.min(100,Math.round(returned/price*100)));
+  const forecast=returned+s.remainSum-price;
+  let date=null;
+  if(remain>0&&s.monthly>0){const k=Math.ceil(remain/s.monthly),idx=s.paidCount+k-1;if(idx<s.sched.length)date=s.sched[idx]}
+  return{price:price,returned:returned,remain:remain,pct:pct,forecast:forecast,date:date};
+}
+function roiHtml(c,s){
+  const r=roi(c,s);
+  const head='<div class="section"><h3>🚘 Машина қопланиши</h3>';
+  if(!r)return head+'<p style="color:var(--muted);font-size:13px">Машина нархини «Таҳрирлаш» орқали киритинг: қачон қопланиши ҳисобланади.</p></div>';
+  return head+'<div class="progress" style="height:10px;margin:0 0 8px"><div style="width:'+r.pct+'%;background:var(--success)"></div></div>'
+    +'<div class="kv"><span>Машина нархи</span><span>'+fmtMoney(r.price)+'</span></div>'
+    +'<div class="kv"><span>Қайтган маблағ</span><span style="color:var(--success)">'+fmtMoney(r.returned)+'</span></div>'
+    +'<div class="kv"><span>Қолган қоплаш</span><span>'+fmtMoney(r.remain)+'</span></div>'
+    +'<div class="kv"><span>Қопланган</span><span>'+r.pct+'%</span></div>'
+    +'<div class="kv"><span>Тахминий қопланиш</span><span>'+(r.remain<=0?'<span style="color:var(--success)">қопланган ✓</span>':(r.date?fmtDate(r.date):'<span style="color:var(--danger)">шартнома давомида қопланмайди</span>'))+'</span></div>'
+    +'<div class="kv"><span>Шартнома охирида</span><span style="color:'+(r.forecast>=0?'var(--success)':'var(--danger)')+'">'+(r.forecast>=0?'+':'−')+' '+fmtMoney(Math.abs(r.forecast))+'</span></div>'
+    +'<p class="tg-st" style="margin-top:8px">Қайтган маблағ = бошланғич сумма + тўловлар − харажатлар. Охирги қатор: ҳамма тўловлар ўз вақтида тўланса, қоладиган соф фойда (камомад).</p></div>';
+}
+function capCard(){
+  let price=0,ret=0;
+  state.cars.forEach(c=>{const r=roi(c,calc(c));if(r){price+=r.price;ret+=r.returned}});
+  if(price<=0)return '';
+  const pct=Math.max(0,Math.min(100,Math.round(ret/price*100)));
+  return '<div class="stat wide"><div class="lbl">Машиналар қопланиши</div><div class="val" style="color:'+(ret>=price?'var(--success)':'var(--text)')+'">'+pct+'% <span style="font-size:12px;color:var(--muted);font-weight:600">· '+fmtMoney(Math.max(0,ret))+' / '+fmtMoney(price)+'</span></div><div class="bar"><div style="width:'+pct+'%"></div></div></div>';
+}
+
+/* ---- Тўлов чеки ---- */
+function fitText(x,t,maxW){t=String(t);if(x.measureText(t).width<=maxW)return t;while(t.length>1&&x.measureText(t+'…').width>maxW)t=t.slice(0,-1);return t+'…'}
+function rcptCanvas(c,idx){
+  const p=(c.payments||[])[idx];if(!p)return null;
+  const s=calc(c),total=s.totalMonths;
+  const remain=Math.max(0,(total-(idx+1))*s.monthly);
+  const no=String(c.id||'').slice(-4).toUpperCase()+'-'+String(idx+1).padStart(3,'0');
+  const rows=[['Машина',c.name||'—'],['Ижарачи',c.renter||'—'],['Тўлов санаси',fmtDate(p.date)],['Тўлов рақами',(idx+1)+' / '+total],['Шундан кейин қолдиқ',fmtMoney(remain)]];
+  const W=720,pad=44,top=150,amtH=170,rowH=66,foot=190,H=top+amtH+rows.length*rowH+foot;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const x=cv.getContext('2d');
+  const F='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+  x.fillStyle='#ffffff';x.fillRect(0,0,W,H);
+  const g=x.createLinearGradient(0,0,W,top);g.addColorStop(0,'#2563eb');g.addColorStop(1,'#1e40af');
+  x.fillStyle=g;x.fillRect(0,0,W,top);
+  x.fillStyle='#fff';x.textBaseline='middle';x.textAlign='left';
+  x.font='bold 40px '+F;x.fillText('Молия Ижара',pad,58);
+  x.font='500 24px '+F;x.globalAlpha=.9;x.fillText('ТЎЛОВ ЧЕКИ',pad,104);x.globalAlpha=1;
+  x.textAlign='right';x.font='600 24px '+F;x.fillText('№ '+no,W-pad,58);
+  const at=p.at?new Date(p.at):null,atD=at&&!isNaN(at.getTime())?at.getFullYear()+'-'+String(at.getMonth()+1).padStart(2,'0')+'-'+String(at.getDate()).padStart(2,'0'):'';
+  x.font='500 22px '+F;x.globalAlpha=.9;x.fillText(atD===p.date?fmtDateTime(at):fmtDate(p.date),W-pad,104);x.globalAlpha=1;
+  x.textAlign='center';x.fillStyle='#16a34a';x.font='bold 58px '+F;
+  x.fillText(fitText(x,fmtMoney(p.amount),W-2*pad),W/2,top+84);
+  x.fillStyle='#64748b';x.font='500 22px '+F;x.fillText('Қабул қилинган сумма',W/2,top+136);
+  let y=top+amtH;
+  x.strokeStyle='#e2e8f0';x.lineWidth=2;
+  x.beginPath();x.moveTo(pad,y);x.lineTo(W-pad,y);x.stroke();
+  rows.forEach((r,i)=>{
+    const cy=y+i*rowH+rowH/2;
+    x.textAlign='left';x.fillStyle='#64748b';x.font='500 24px '+F;x.fillText(r[0],pad,cy);
+    const lw=x.measureText(r[0]).width;
+    x.textAlign='right';x.fillStyle='#0f172a';x.font='bold 26px '+F;
+    x.fillText(fitText(x,r[1],W-2*pad-lw-24),W-pad,cy);
+    x.beginPath();x.moveTo(pad,y+(i+1)*rowH);x.lineTo(W-pad,y+(i+1)*rowH);x.stroke();
+  });
+  const fy=y+rows.length*rowH+60;
+  x.fillStyle='#16a34a';x.beginPath();x.arc(W/2-150,fy,22,0,Math.PI*2);x.fill();
+  x.strokeStyle='#fff';x.lineWidth=5;x.lineCap='round';x.lineJoin='round';
+  x.beginPath();x.moveTo(W/2-160,fy);x.lineTo(W/2-152,fy+9);x.lineTo(W/2-138,fy-9);x.stroke();
+  x.textAlign='left';x.fillStyle='#16a34a';x.font='bold 30px '+F;x.fillText('Тўлов қабул қилинди',W/2-114,fy);
+  x.textAlign='center';x.fillStyle='#94a3b8';x.font='500 20px '+F;x.fillText('Раҳмат! · Молия Ижара иловасида тайёрланди',W/2,fy+66);
+  return cv;
+}
+const cvBlob=cv=>new Promise(r=>cv.toBlob(r,'image/png'));
+function saveBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+function openReceipt(carId,idx){
+  const c=state.cars.find(x=>x.id===carId);if(!c)return;
+  const cv=rcptCanvas(c,idx);if(!cv){alert('Чек тайёрланмади');return}
+  const fname='chek_'+(String(c.name||'car').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'car')+'_'+(idx+1)+'.png';
+  openModal('<h2>🧾 Тўлов чеки</h2><img class="rcpt-img" id="rc_img" alt="Чек" src="'+cv.toDataURL('image/png')+'">'
+    +'<div class="modal-actions"><button type="button" class="btn primary" id="rc_share">📤 Улашиш</button><button type="button" class="btn" id="rc_save">💾 Сақлаш</button></div>'
+    +'<div class="modal-actions">'+(tgOn()?'<button type="button" class="btn" id="rc_tg">✈️ Телеграмга</button>':'')+'<button type="button" class="btn" id="rc_close">Ёпиш</button></div>');
+  $('rc_close').addEventListener('click',()=>closeModal(false));
+  $('rc_save').addEventListener('click',async()=>{saveBlob(await cvBlob(cv),fname)});
+  $('rc_share').addEventListener('click',async()=>{
+    const blob=await cvBlob(cv);
+    try{
+      const file=new File([blob],fname,{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Тўлов чеки'});return}
+    }catch(e){if(e&&e.name==='AbortError')return}
+    saveBlob(blob,fname);
+  });
+  const tb=$('rc_tg');
+  if(tb)tb.addEventListener('click',async()=>{
+    tb.disabled=true;
+    const p=c.payments[idx];
+    const r=await tgSendFile('sendPhoto','photo',await cvBlob(cv),fname,'🧾 <b>Тўлов чеки</b>\n🚗 '+esc(c.name)+'\n👤 '+esc(c.renter||'—')+'\n💵 '+fmtMoney(p.amount)+' · '+fmtDate(p.date));
+    tb.disabled=false;
+    alert(r.ok?'Чек Телеграмга юборилди ✓':'Юборилмади: '+tgErrText(r.err));
+  });
+}
+
+/* ---- Телеграм: файл юбориш, ҳафталик хулоса, захира ---- */
+async function tgSendFile(method,field,blob,filename,caption){
+  const t=state.tg;
+  if(!tgOn())return{ok:false,err:'Токен ёки чат ID йўқ'};
+  let res;
+  try{
+    const fd=new FormData();fd.append('chat_id',t.chatId.trim());
+    if(caption){fd.append('caption',String(caption).slice(0,1000));fd.append('parse_mode','HTML')}
+    fd.append(field,blob,filename);
+    const r=await fetch('https://api.telegram.org/bot'+t.token.trim()+'/'+method,{method:'POST',body:fd});
+    let j={};try{j=await r.json()}catch(e){}
+    if(r.ok&&j.ok)res={ok:true};
+    else res={ok:false,err:(j&&j.description)||('HTTP '+r.status),net:(r.status===429||r.status>=500)};
+  }catch(e){res={ok:false,err:'net',net:true}}
+  t.last={ok:res.ok,at:Date.now(),err:res.ok?'':tgErrText(res.err)};
+  try{save()}catch(e){}
+  return res;
+}
+function backupJson(){const cp=JSON.parse(JSON.stringify(state));if(cp.tg)cp.tg.token='';cp.tgQueue=[];return JSON.stringify(cp)}
+function statsFor(from,to){
+  let inc=0,exp=0,payN=0;const perCar=[];
+  state.cars.forEach(c=>{
+    let ci=0,ce=0;
+    (c.payments||[]).forEach(p=>{const n=dayOfStr(p.date);if(n!=null&&n>=from&&n<=to){ci+=Number(p.amount)||0;payN++}});
+    (c.expenses||[]).forEach(e=>{const n=dayOfStr(e.date);if(n!=null&&n>=from&&n<=to)ce+=Number(e.amount)||0});
+    inc+=ci;exp+=ce;perCar.push({c:c,inc:ci,exp:ce});
+  });
+  return{inc:inc,exp:exp,net:inc-exp,payN:payN,perCar:perCar};
+}
+function weeklyText(backup){
+  const today=dayNumOf(new Date()),st=statsFor(today-6,today);
+  let late=0,lateSum=0,soon=0,dead=0;const lines=[];
+  state.cars.forEach(c=>{
+    const s=calc(c);if(s.done)return;
+    const a=arrears(c,s);
+    if(a.n>0){late++;lateSum+=a.sum;if(lines.length<5)lines.push('• '+esc(cut(c.name,24))+(c.renter?' — '+esc(cut(c.renter,24)):'')+': '+fmtMoney(a.sum)+(a.days>0?' ('+a.days+' кун)':''))}
+    else if(s.nextDue){const dd=dayNumOf(s.nextDue)-today;if(dd>=0&&dd<=7)soon++}
+    deadList(c).forEach(d=>{if(d.cls!=='ok')dead++});
+  });
+  let t='📊 <b>Ҳафталик хулоса</b>\n🗓 '+fmtDay(today-6)+' — '+fmtDay(today)
+    +'\n💰 Тушум: '+fmtMoney(st.inc)+' ('+st.payN+' та тўлов)\n💸 Харажат: '+fmtMoney(st.exp)+'\n📈 Соф: '+fmtMoney(st.net)
+    +'\n⚠️ Кечиккан: '+late+' та'+(late?' · '+fmtMoney(lateSum):'')+'\n📅 7 кунда тўлов: '+soon+' та\n⏰ Муддатлар: '+dead+' та';
+  if(lines.length&&t.length+lines.join('\n').length<800)t+='\n'+lines.join('\n');
+  if(backup)t+='\n💾 Захира файли иловада';
+  return t;
+}
+function sendBackup(){
+  const blob=new Blob([backupJson()],{type:'application/json'});
+  return tgSendFile('sendDocument','document',blob,'moliya_zaxira_'+todayStr()+'.json',weeklyText(true));
+}
+let weeklyBusy=false;
+async function checkWeekly(){
+  if(weeklyBusy||!tgOn('weekly'))return;
+  const now=Date.now(),b=state.backup;
+  if(now-(b.last||0)<7*864e5)return;
+  if(now-(b.tried||0)<30*60*1000)return;
+  weeklyBusy=true;
+  try{
+    b.tried=now;save();
+    const r=await sendBackup();
+    if(r.ok){b.last=Date.now();save()}
+  }finally{weeklyBusy=false}
+}
+
+/* ---- Ойлик ҳисобот ---- */
+function monthRange(ym){
+  const m=/^(\d{4})-(\d{2})$/.exec(ym||'');let y,mo;
+  if(m){y=+m[1];mo=+m[2]}else{const n=new Date();y=n.getFullYear();mo=n.getMonth()+1}
+  return{from:Math.floor(Date.UTC(y,mo-1,1)/864e5),to:Math.floor(Date.UTC(y,mo,0)/864e5),y:y,mo:mo};
+}
+function renderMonthReport(){
+  const inp=$('repMonth');if(!inp.value)inp.value=todayStr().slice(0,7);
+  const r=monthRange(inp.value),st=statsFor(r.from,r.to);
+  const rows=st.perCar.filter(x=>x.inc||x.exp);
+  $('repPrintDate').textContent=fmtDate(new Date())+' · '+inp.value;
+  $('repMonthBody').innerHTML='<div class="sum-grid"><div>Тушум<b style="color:var(--success)">'+fmtMoney(st.inc)+'</b></div><div>Харажат<b style="color:var(--danger)">'+fmtMoney(st.exp)+'</b></div><div>Соф фойда<b style="color:'+(st.net>=0?'var(--success)':'var(--danger)')+'">'+fmtMoney(st.net)+'</b></div></div>'
+    +(rows.length?rows.map(x=>'<div class="kv"><span>🚗 '+esc(x.c.name)+'</span><span>+ '+fmtMoney(x.inc)+(x.exp?' · − '+fmtMoney(x.exp):'')+'</span></div>').join(''):'<p style="color:var(--muted);font-size:13px">Бу ойда тўлов ёки харажат йўқ</p>')
+    +'<p class="tg-st">Тўловлар сони: '+st.payN+'</p>';
+}
+function monthText(){
+  const r=monthRange($('repMonth').value),st=statsFor(r.from,r.to);
+  const rows=st.perCar.filter(x=>x.inc||x.exp).slice(0,8);
+  let t='🗓 <b>Ойлик ҳисобот · '+String(r.mo).padStart(2,'0')+'.'+r.y+'</b>\n💰 Тушум: '+fmtMoney(st.inc)+' ('+st.payN+' та тўлов)\n💸 Харажат: '+fmtMoney(st.exp)+'\n📈 Соф фойда: '+fmtMoney(st.net);
+  if(rows.length)t+='\n'+rows.map(x=>'• '+esc(cut(x.c.name,24))+': +'+fmtMoney(x.inc)+(x.exp?' / −'+fmtMoney(x.exp):'')).join('\n');
+  return t;
+}
+$('repMonth').addEventListener('change',renderMonthReport);
+$('repPrintBtn').addEventListener('click',()=>{renderMonthReport();try{window.print()}catch(e){alert('Чоп этиб бўлмади')}});
+$('repTgBtn').addEventListener('click',async()=>{
+  if(!tgOn()){alert('Аввал Созлашлардан Телеграмни уланг');return}
+  const b=$('repTgBtn');b.disabled=true;
+  const r=await tgDeliver(monthText());
+  b.disabled=false;
+  alert(r.ok?'Телеграмга юборилди ✓':(r.net?'Интернет йўқ: навбатга қўйилди':'Юборилмади: '+tgErrText(r.err)));
+});
+
 /* ============ MODAL ============ */
 function openModal(content,onOutside){modalResolve=onOutside||null;$('modalBox').innerHTML=content;$('modal').classList.add('active')}
 function closeModal(result){
@@ -749,7 +1120,8 @@ function renderMain(){
     <div class="stat"><div class="lbl">Тўланган</div><div class="val" style="color:var(--success)">${fmtMoney(totalPaid)}</div></div>
     <div class="stat"><div class="lbl">Қолдиқ</div><div class="val" style="color:${totalRemain>0?'var(--danger)':'var(--success)'}">${fmtMoney(totalRemain)}</div></div>
     <div class="stat"><div class="lbl">Харажатлар</div><div class="val" style="color:var(--danger)">${fmtMoney(totalExp)}</div></div>
-    <div class="stat"><div class="lbl">Соф фойда</div><div class="val" style="color:${totalPaid-totalExp>=0?'var(--success)':'var(--danger)'}">${fmtMoney(totalPaid-totalExp)}</div></div>`;
+    <div class="stat"><div class="lbl">Соф фойда</div><div class="val" style="color:${totalPaid-totalExp>=0?'var(--success)':'var(--danger)'}">${fmtMoney(totalPaid-totalExp)}</div></div>${capCard()}`;
+  renderToday();
   renderDeadBox();
   renderChart();
   $('searchBar').style.display=cars.length>2?'flex':'none';
@@ -810,6 +1182,10 @@ function renderChart(){
 }
 
 $('deadBox').addEventListener('click',e=>{const r=e.target.closest('[data-id]');if(r&&r.dataset.id)openCar(r.dataset.id)});
+$('todayBox').addEventListener('click',e=>{
+  const b=e.target.closest('[data-remind]');if(b){e.stopPropagation();openRemind(b.dataset.remind);return}
+  const r=e.target.closest('[data-id]');if(r&&r.dataset.id)openCar(r.dataset.id);
+});
 $('carList').addEventListener('click',e=>{
   const card=e.target.closest('.car-card');if(!card)return;
   const id=card.dataset.id;if(id)openCar(id);
@@ -828,10 +1204,12 @@ function openCarForm(id){
     <div class="field"><label>Машина номи *</label><input id="f_name" placeholder="Мисол: Gentra, Malibu" value="${esc(c.name)}"></div>
     <div class="field"><label>Ижарачи исми</label><input id="f_renter" placeholder="Тўлиқ исм" value="${esc(c.renter)}"></div>
     <div class="field"><label>Ижарачи манзили</label><input id="f_addr" placeholder="Шаҳар, туман, кўча" value="${esc(c.address)}"></div>
+    <div class="field"><label>📞 Ижарачи телефони</label><input id="f_phone" type="tel" inputmode="tel" placeholder="+998 90 123 45 67" value="${esc(c.phone||'')}"><div class="hint">Эслатма юбориш учун (ихтиёрий)</div></div>
     <div class="row2">
       <div class="field"><label>Бошланғич сумма</label><input id="f_init" type="number" inputmode="numeric" placeholder="0" value="${c.initial||''}"></div>
       <div class="field"><label>Ойлик тўлов *</label><input id="f_monthly" type="number" inputmode="numeric" placeholder="0" value="${c.monthlyPayment||''}"></div>
     </div>
+    <div class="field"><label>🚘 Машина нархи (ихтиёрий)</label><input id="f_price" type="number" inputmode="numeric" placeholder="0" value="${c.price||''}"><div class="hint">Киритсангиз, машина ўзини қачон қоплаши ҳисобланади</div></div>
     <div class="row2">
       <div class="field"><label>Неча ойга *</label><input id="f_months" type="number" inputmode="numeric" placeholder="12" value="${c.months||''}"></div>
       <div class="field"><label>Бошланиш санаси *</label><input id="f_start" type="date" value="${c.startDate||todayStr()}"></div>
@@ -870,7 +1248,7 @@ function saveCarForm(edit){
   isSaving=true;
   const btn=$('saveCarBtn');if(btn){btn.disabled=true;btn.textContent='Сақланаяпти...'}
   try{
-    const obj=Object.assign({},edit||{},{id:edit?edit.id:uid(),name,renter:($('f_renter').value||'').trim(),address:($('f_addr').value||'').trim(),initial:Number($('f_init').value)||0,monthlyPayment:monthly,months:months,startDate:$('f_start').value||todayStr(),startTime:$('f_time').value||'09:00',docs:pendingDocs.slice(),payments:edit?(edit.payments||[]).slice():[],expenses:edit?(edit.expenses||[]).slice():[],insExpiry:($('f_ins').value||''),techExpiry:($('f_tech').value||''),ishonch:pendingIshonch?Object.assign({},pendingIshonch,{date:$('f_ish_date').value,expiry:$('f_ish_exp').value,place:($('f_ish_place').value||'').trim()}):null,createdAt:edit?edit.createdAt:new Date().toISOString()});
+    const obj=Object.assign({},edit||{},{id:edit?edit.id:uid(),name,renter:($('f_renter').value||'').trim(),address:($('f_addr').value||'').trim(),initial:Number($('f_init').value)||0,monthlyPayment:monthly,months:months,startDate:$('f_start').value||todayStr(),startTime:$('f_time').value||'09:00',docs:pendingDocs.slice(),payments:edit?(edit.payments||[]).slice():[],expenses:edit?(edit.expenses||[]).slice():[],insExpiry:($('f_ins').value||''),techExpiry:($('f_tech').value||''),phone:($('f_phone').value||'').trim().slice(0,30),price:Math.max(0,Number($('f_price').value)||0),ishonch:pendingIshonch?Object.assign({},pendingIshonch,{date:$('f_ish_date').value,expiry:$('f_ish_exp').value,place:($('f_ish_place').value||'').trim()}):null,createdAt:edit?edit.createdAt:new Date().toISOString()});
     if(edit){const i=state.cars.findIndex(x=>x.id===edit.id);if(i>=0)state.cars[i]=obj}else{state.cars.unshift(obj)}
     save();if(!edit)tgNotify('rent',msgRent(obj));modalResolve=null;$('modal').classList.remove('active');setTimeout(()=>$('modalBox').innerHTML='',300);
     renderMain();
@@ -913,7 +1291,7 @@ function openCar(id){
   const docsHtml=(c.docs||[]).length?`<div class="doc-grid">${c.docs.map((d,i)=>`<div class="doc-item" data-viewdoc="${i}"><div class="ic">${d.type?.startsWith('image')?'🖼️':'📄'}</div><div class="nm">${esc((d.name||'Ҳужжат').slice(0,16))}</div></div>`).join('')}</div>`:`<p style="color:var(--muted);font-size:13px">Ҳужжат йўқ</p>`;
   const ishHtml=c.ishonch?`<div class="kv"><span>Ҳолат</span><span>Мавжуд</span></div><div class="kv"><span>Санаси</span><span>${fmtDate(c.ishonch.date)}</span></div><div class="kv"><span>Муддати</span><span>${fmtDate(c.ishonch.expiry)}</span></div><div class="kv"><span>Жойи</span><span>${esc(c.ishonch.place||'—')}</span></div><button type="button" class="btn primary sm" style="width:100%;margin-top:10px" id="viewIshBtn">👁️ Кўриш</button>`:`<p style="color:var(--muted);font-size:13px">Ишончнома киритилмаган</p>`;
   const payments=(c.payments||[]).slice().reverse();
-  const payHtml=payments.length?payments.map((p,i)=>{const realIdx=(c.payments.length-1-i);return`<div class="pay-item"><div><div class="amt">+ ${fmtMoney(p.amount)}</div><div class="date">${fmtDate(p.date)}</div></div><button type="button" class="btn sm danger" data-rmpay="${realIdx}">✕</button></div>`}).join(''):`<p style="color:var(--muted);font-size:13px">Тўлов қайд этилмаган</p>`;
+  const payHtml=payments.length?payments.map((p,i)=>{const realIdx=(c.payments.length-1-i);return`<div class="pay-item"><div><div class="amt">+ ${fmtMoney(p.amount)}</div><div class="date">${fmtDate(p.date)}</div></div><div style="display:flex;gap:6px"><button type="button" class="btn sm" data-rcpt="${realIdx}" aria-label="Чек">🧾</button><button type="button" class="btn sm danger" data-rmpay="${realIdx}">✕</button></div></div>`}).join(''):`<p style="color:var(--muted);font-size:13px">Тўлов қайд этилмаган</p>`;
   const finHtml=`<div class="section"><h3>📈 Молиявий натижа</h3>
       <div class="kv"><span>Тушум (тўловлар)</span><span style="color:var(--success)">${fmtMoney(s.paidSum)}</span></div>
       <div class="kv"><span>Харажатлар</span><span style="color:var(--danger)">− ${fmtMoney(s.expSum)}</span></div>
@@ -931,13 +1309,15 @@ function openCar(id){
       <div class="kv"><span>Машина</span><span>${esc(c.name)}</span></div>
       <div class="kv"><span>Ижарачи</span><span>${esc(c.renter||'—')}</span></div>
       <div class="kv"><span>Манзил</span><span>${esc(c.address||'—')}</span></div>
+      <div class="kv"><span>Телефон</span><span>${esc(c.phone||'—')}</span></div>
       <div class="kv"><span>Бошланғич сумма</span><span>${fmtMoney(c.initial)}</span></div>
       <div class="kv"><span>Ойлик тўлов</span><span>${fmtMoney(c.monthlyPayment)}</span></div>
       <div class="kv"><span>Муддат</span><span>${c.months||0} ой</span></div>
       <div class="kv"><span>Бошланиш</span><span>${fmtDateTime(new Date((c.startDate||todayStr())+'T'+(c.startTime||'09:00')+':00'))}</span></div>
       <div class="kv"><span>Тўланган жами</span><span style="color:var(--success)">${fmtMoney(s.paidSum)}</span></div></div>
-    ${finHtml}
+    ${finHtml}${roiHtml(c,s)}${trustHtml(c,s)}
     <button type="button" class="btn success block" id="payNowBtn">💰 Тўлов қабул қилиш</button>
+    <button type="button" class="btn block" id="remindBtn">📩 Ижарачига эслатма</button>
     <button type="button" class="btn block" id="editCarBtn">✏️ Таҳрирлаш</button>
     <div class="section"><h3>📅 Тўлов жадвали</h3>${schedHtml}</div>
     ${deadHtml}
@@ -948,6 +1328,8 @@ function openCar(id){
   $('payNowBtn').addEventListener('click',()=>payNow(c.id));
   $('editCarBtn').addEventListener('click',()=>openCarForm(c.id));
   $('addExpBtn').addEventListener('click',()=>openExpenseForm(c.id));
+  $('remindBtn').addEventListener('click',()=>openRemind(c.id));
+  $('detailContent').querySelectorAll('[data-rcpt]').forEach(el=>{el.addEventListener('click',()=>openReceipt(c.id,Number(el.dataset.rcpt)))});
   $('detailContent').querySelectorAll('[data-rmexp]').forEach(el=>{el.addEventListener('click',()=>removeExpense(c.id,el.dataset.rmexp))});
   const viewIsh=$('viewIshBtn');if(viewIsh)viewIsh.addEventListener('click',()=>viewDoc(c.id,'ishonch',0));
   $('detailContent').querySelectorAll('[data-viewdoc]').forEach(el=>{el.addEventListener('click',()=>viewDoc(c.id,'doc',Number(el.dataset.viewdoc)))});
@@ -1028,7 +1410,7 @@ $('delCarBtn').addEventListener('click',async()=>{
 });
 
 /* ============ REPORTS / TABLE ============ */
-$('reportsBtn').addEventListener('click',()=>{renderTable();showScreen('reportsScreen')});
+$('reportsBtn').addEventListener('click',()=>{renderTable();renderMonthReport();showScreen('reportsScreen')});
 $('backBtn3').addEventListener('click',()=>{showScreen('mainScreen');renderMain()});
 $('tableFilterInput').addEventListener('input',()=>renderTable());
 
@@ -1054,10 +1436,11 @@ function renderTable(){
       <td class="td-money ${s.net>=0?'ok':'bad'}">${fmtMoney(s.net)}</td>
       <td class="td-money ${s.remainSum>0?'bad':''}">${fmtMoney(s.remainSum)}</td>
       <td><span class="td-badge ${cls}">${status}</span></td>
+      <td>${(()=>{const t=trust(c,s);return t?starsHtml(t.stars):'—'})()}</td>
     </tr>`);
   });
   if(!rows.length){
-    $('filterTableBody').innerHTML=`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Ҳеч нарса топилмади</td></tr>`;
+    $('filterTableBody').innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Ҳеч нарса топилмади</td></tr>`;
     return;
   }
   $('filterTableBody').innerHTML=rows.join('');
@@ -1105,7 +1488,7 @@ function tgStatusRender(){
 }
 function tgUI(){
   $('tgToken').value=state.tg.token||'';$('tgChat').value=state.tg.chatId||'';
-  $('tgEvPay').checked=state.tg.ev.pay;$('tgEvRent').checked=state.tg.ev.rent;$('tgEvDue').checked=state.tg.ev.due;$('tgEvDead').checked=state.tg.ev.dead;
+  $('tgEvPay').checked=state.tg.ev.pay;$('tgEvRent').checked=state.tg.ev.rent;$('tgEvDue').checked=state.tg.ev.due;$('tgEvDead').checked=state.tg.ev.dead;$('tgEvWeekly').checked=!!state.tg.ev.weekly;
   tgStatusRender();
 }
 $('tgToken').addEventListener('change',e=>{state.tg.token=e.target.value.trim();save();tgStatusRender();flushTg()});
@@ -1131,6 +1514,25 @@ $('tgFindBtn').addEventListener('click',async()=>{
     const id=String(ids[ids.length-1]);state.tg.chatId=id;$('tgChat').value=id;save();tgStatusRender();alert('Чат ID топилди: '+id);
   }catch(e){alert('Интернетга уланиб бўлмади')}
 });
+$('tgEvWeekly').addEventListener('change',async e=>{
+  const on=e.target.checked;
+  if(on){
+    const ok=await askConfirm('Ҳафталик захира','Ҳар 7 кунда ҳисобот ва захира файли (ҳужжат расмлари билан) Телеграмдаги шу ботга юборилади. Давом этамизми?','Ёқиш','primary');
+    if(!ok){e.target.checked=false;return}
+  }
+  state.tg.ev.weekly=on;save();
+  if(on)checkWeekly().catch(()=>{});
+});
+$('tgBackupBtn').addEventListener('click',async()=>{
+  state.tg.token=($('tgToken').value||'').trim();state.tg.chatId=($('tgChat').value||'').trim();save();
+  if(!tgOn()){tgStatusRender();alert('Аввал бот токени ва чат ID ни тўғри киритинг');return}
+  const b=$('tgBackupBtn');b.disabled=true;
+  const r=await sendBackup();
+  b.disabled=false;
+  if(r.ok){state.backup.last=Date.now();save()}
+  tgStatusRender();
+  alert(r.ok?'Захира Телеграмга юборилди ✓':'Юборилмади: '+tgErrText(r.err));
+});
 $('testNotifBtn').addEventListener('click',()=>{notify('🔔 Синов','Билдиришнома тизими ишлаяпти')});
 $('changePassBtn').addEventListener('click',()=>{
   openModal(`<h2>🔑 Паролни ўзгартириш</h2>
@@ -1149,8 +1551,7 @@ $('changePassBtn').addEventListener('click',()=>{
   });
 });
 $('exportBtn').addEventListener('click',()=>{
-  const cp=JSON.parse(JSON.stringify(state));if(cp.tg)cp.tg.token='';cp.tgQueue=[];
-  const data=JSON.stringify(cp);
+  const data=backupJson();
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='moliy_aIjara_zaxira_'+todayStr()+'.json';a.click();
@@ -1199,7 +1600,7 @@ function notify(title,body){
 let bannerTimer;
 function showBanner(text){const b=$('banner');b.textContent=text;b.classList.add('active');clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>b.classList.remove('active'),6000)}
 function checkNotifications(){
-  try{checkTgDue();checkDeadlines();flushTg()}catch(e){console.warn(e)}
+  try{checkTgDue();checkDeadlines();flushTg();checkWeekly().catch(()=>{})}catch(e){console.warn(e)}
   if(!state.notifSettings.enabled)return;
   const now=Date.now(),interval=(state.notifSettings.reNotifyMin||60)*60*1000;
   state.cars.forEach(c=>{
